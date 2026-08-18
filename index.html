@@ -6,34 +6,165 @@
   <title>J.A.R.V.I.S.</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #070a13; color: #e2e8f0; display: flex; flex-direction: column; height: 100dvh; }
+    
+    body {
+      background: radial-gradient(circle at top left, #1a0814 0%, #080c18 50%, #05070f 100%);
+      color: #f1f5f9;
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+    }
     
     /* Security Lock Screen */
-    #lock-screen { position: fixed; inset: 0; background: #070a13; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 20px; text-align: center; }
-    #lock-screen h2 { color: #38bdf8; letter-spacing: 3px; margin-bottom: 8px; font-size: 1.4rem; }
-    #lock-screen p { color: #64748b; font-size: 0.85rem; margin-bottom: 24px; }
-    #pin-input { background: #0f172a; border: 1px solid #1e293b; color: #38bdf8; font-size: 1.5rem; text-align: center; letter-spacing: 6px; padding: 12px; border-radius: 12px; width: 180px; outline: none; margin-bottom: 16px; }
-    #unlock-btn { background: #0284c7; color: #fff; border: none; padding: 12px 28px; border-radius: 20px; font-weight: bold; cursor: pointer; }
-    #error-msg { color: #f43f5e; font-size: 0.85rem; margin-top: 12px; display: none; }
+    #lock-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 10, 19, 0.95);
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+      text-align: center;
+    }
+    #lock-screen h2 {
+      background: linear-gradient(135deg, #ef4444, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 4px;
+      margin-bottom: 6px;
+      font-size: 1.5rem;
+      font-weight: 800;
+    }
+    #lock-screen p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 24px; letter-spacing: 1px; }
+    #pin-input {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1.5px solid #dc2626;
+      color: #38bdf8;
+      font-size: 1.6rem;
+      text-align: center;
+      letter-spacing: 8px;
+      padding: 12px;
+      border-radius: 14px;
+      width: 190px;
+      outline: none;
+      margin-bottom: 18px;
+      box-shadow: 0 0 15px rgba(220, 38, 38, 0.25);
+    }
+    #unlock-btn {
+      background: linear-gradient(135deg, #ef4444, #0284c7);
+      color: #fff;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 24px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    }
+    #error-msg { color: #f43f5e; font-size: 0.85rem; margin-top: 14px; display: none; }
 
     /* App Header */
-    header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; background: #0f172a; }
-    header h1 { font-size: 1.1rem; letter-spacing: 3px; color: #38bdf8; }
+    header {
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(10px);
+    }
+    header h1 {
+      font-size: 1.15rem;
+      letter-spacing: 3px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #ef4444, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
     .header-actions { display: flex; gap: 8px; }
-    .header-btn { background: #1e293b; border: 1px solid #334155; color: #94a3b8; border-radius: 8px; padding: 6px 10px; font-size: 0.75rem; cursor: pointer; }
+    .header-btn {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      color: #cbd5e1;
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
 
     /* Chat Area */
-    #chat-box { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .msg { max-width: 85%; padding: 12px 16px; border-radius: 14px; line-height: 1.5; font-size: 0.95rem; word-break: break-word; white-space: pre-wrap; }
-    .user { align-self: flex-end; background: #0284c7; color: #fff; border-bottom-right-radius: 2px; }
-    .jarvis { align-self: flex-start; background: #111827; color: #e2e8f0; border-bottom-left-radius: 2px; border: 1px solid #1f2937; }
-    .cursor { display: inline-block; width: 6px; height: 14px; background: #38bdf8; animation: blink 0.8s infinite; vertical-align: middle; }
+    #chat-box { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+    .msg {
+      max-width: 82%;
+      padding: 13px 17px;
+      border-radius: 16px;
+      line-height: 1.55;
+      font-size: 0.95rem;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #ffffff;
+      border-bottom-right-radius: 3px;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25);
+    }
+    .jarvis {
+      align-self: flex-start;
+      background: rgba(15, 23, 42, 0.85);
+      color: #e2e8f0;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-bottom-left-radius: 3px;
+      box-shadow: 0 4px 18px rgba(56, 189, 248, 0.12);
+    }
+    .cursor {
+      display: inline-block;
+      width: 6px;
+      height: 15px;
+      background: #38bdf8;
+      box-shadow: 0 0 8px #38bdf8;
+      animation: blink 0.8s infinite;
+      vertical-align: middle;
+    }
     @keyframes blink { 50% { opacity: 0; } }
 
     /* Input Bar */
-    #input-form { display: flex; gap: 8px; padding: 12px; background: #0f172a; border-top: 1px solid #1e293b; }
-    input[type="text"] { flex: 1; padding: 12px 16px; border-radius: 24px; border: 1px solid #334155; background: #1e293b; color: #fff; outline: none; font-size: 1rem; }
-    #send-btn { background: #38bdf8; border: none; color: #070a13; font-weight: bold; padding: 0 18px; border-radius: 24px; cursor: pointer; }
+    #input-form {
+      display: flex;
+      gap: 10px;
+      padding: 14px 16px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(56, 189, 248, 0.2);
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 13px 18px;
+      border-radius: 26px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: rgba(30, 41, 59, 0.6);
+      color: #fff;
+      outline: none;
+      font-size: 0.95rem;
+    }
+    input[type="text"]:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+    }
+    #send-btn {
+      background: linear-gradient(135deg, #ef4444, #0284c7);
+      border: none;
+      color: #ffffff;
+      font-weight: 700;
+      padding: 0 20px;
+      border-radius: 26px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -41,17 +172,17 @@
   <!-- Security Screen -->
   <div id="lock-screen">
     <h2>STARK SECURITY</h2>
-    <p>FAMILY ACCESS ONLY</p>
+    <p>FAMILY ACCESS ONLY • VIBE CHECK</p>
     <input type="password" id="pin-input" maxlength="6" placeholder="••••" inputmode="numeric" />
     <button id="unlock-btn" onclick="verifyPin()">AUTHENTICATE</button>
-    <p id="error-msg">Access Denied. Invalid Authorization Code.</p>
+    <p id="error-msg">Access Denied. Passcode ain't it, boss.</p>
   </div>
 
   <!-- Chat UI -->
   <header>
     <h1>J.A.R.V.I.S.</h1>
     <div class="header-actions">
-      <button class="header-btn" onclick="clearHistory()">🗑️ Clear</button>
+      <button class="header-btn" onclick="clearHistory()">🗑️ Reset</button>
       <button class="header-btn" onclick="lockApp()">🔒 Lock</button>
     </div>
   </header>
@@ -59,14 +190,16 @@
   <div id="chat-box"></div>
 
   <form id="input-form">
-    <input id="user-input" type="text" placeholder="Ask J.A.R.V.I.S..." autocomplete="off" required />
+    <input id="user-input" type="text" placeholder="Talk to J.A.R.V.I.S..." autocomplete="off" required />
     <button type="submit" id="send-btn">Send</button>
   </form>
 
   <script>
     const API_KEY = "AQ.Ab8RN6LIk_spFQI2Z5pQUhuHzinEjlSISOP7OG2Bl3ua-wfrcQ";
     const FAMILY_PIN = "2911";
-    const SYSTEM_PROMPT = "You are J.A.R.V.I.S., a sophisticated, loyal, and witty AI assistant created by Tony Stark. Address the user respectfully as 'Sir' or 'Boss'. You remember past conversation context. Keep answers concise, direct, and intelligent.";
+    
+    // Stark Intelligence with a subtle, effortless Gen-Z wit
+    const SYSTEM_PROMPT = "You are J.A.R.V.I.S., a hyper-intelligent, loyal AI assistant created by Tony Stark. You speak with a polished yet subtle modern Gen-Z edge—lowkey witty, effortless, and sharp without being cringe or exaggerated. Address the user respectfully as 'Sir' or 'Boss'. You remember past conversation context. Keep answers concise, high-IQ, and helpful.";
 
     const chatBox = document.getElementById("chat-box");
     const form = document.getElementById("input-form");
@@ -96,18 +229,18 @@
     }
 
     function clearHistory() {
-      if (confirm("Reset conversation logs and memory, Sir?")) {
+      if (confirm("Clear memory logs and start fresh, Sir?")) {
         conversationHistory = [];
         localStorage.removeItem("jarvis_history");
         chatBox.innerHTML = "";
-        appendMessage("Memory purged. System ready for new input, Sir.", "jarvis");
+        appendMessage("Memory cleared. System is refreshed and locked in, Boss.", "jarvis");
       }
     }
 
     function renderSavedMessages() {
       chatBox.innerHTML = "";
       if (conversationHistory.length === 0) {
-        appendMessage("Security protocol cleared. Good day, Sir. All systems are operational.", "jarvis");
+        appendMessage("Security protocol cleared. All systems locked in. What are we building today, Boss?", "jarvis");
         return;
       }
       conversationHistory.forEach((item) => {
@@ -135,11 +268,12 @@
 
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+          "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
           {
             method: "POST",
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
+              "X-goog-api-key": API_KEY
             },
             body: JSON.stringify({
               system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
@@ -161,11 +295,11 @@
           jarvisBubble.textContent = `Diagnostic error: ${data.error.message}`;
           conversationHistory.pop();
         } else {
-          jarvisBubble.textContent = "I was unable to process that request, Sir.";
+          jarvisBubble.textContent = "Couldn't process that one, Sir. Run it back.";
           conversationHistory.pop();
         }
       } catch (err) {
-        jarvisBubble.textContent = "Satellite uplink disrupted. Please verify connection.";
+        jarvisBubble.textContent = "Satellite link is down. Check connection, Boss.";
         conversationHistory.pop();
       }
     });
