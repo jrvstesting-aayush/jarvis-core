@@ -16,15 +16,21 @@
     #unlock-btn { background: #0284c7; color: #fff; border: none; padding: 12px 28px; border-radius: 20px; font-weight: bold; cursor: pointer; }
     #error-msg { color: #f43f5e; font-size: 0.85rem; margin-top: 12px; display: none; }
 
-    /* App UI */
-    header { padding: 16px; text-align: center; border-bottom: 1px solid #1e293b; background: #0f172a; }
+    /* App Header */
+    header { padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e293b; background: #0f172a; }
     header h1 { font-size: 1.1rem; letter-spacing: 3px; color: #38bdf8; }
+    .header-actions { display: flex; gap: 8px; }
+    .header-btn { background: #1e293b; border: 1px solid #334155; color: #94a3b8; border-radius: 8px; padding: 6px 10px; font-size: 0.75rem; cursor: pointer; }
+
+    /* Chat Area */
     #chat-box { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-    .msg { max-width: 85%; padding: 12px 16px; border-radius: 14px; line-height: 1.5; font-size: 0.95rem; word-break: break-word; }
+    .msg { max-width: 85%; padding: 12px 16px; border-radius: 14px; line-height: 1.5; font-size: 0.95rem; word-break: break-word; white-space: pre-wrap; }
     .user { align-self: flex-end; background: #0284c7; color: #fff; border-bottom-right-radius: 2px; }
     .jarvis { align-self: flex-start; background: #111827; color: #e2e8f0; border-bottom-left-radius: 2px; border: 1px solid #1f2937; }
     .cursor { display: inline-block; width: 6px; height: 14px; background: #38bdf8; animation: blink 0.8s infinite; vertical-align: middle; }
     @keyframes blink { 50% { opacity: 0; } }
+
+    /* Input Bar */
     #input-form { display: flex; gap: 8px; padding: 12px; background: #0f172a; border-top: 1px solid #1e293b; }
     input[type="text"] { flex: 1; padding: 12px 16px; border-radius: 24px; border: 1px solid #334155; background: #1e293b; color: #fff; outline: none; font-size: 1rem; }
     #send-btn { background: #38bdf8; border: none; color: #070a13; font-weight: bold; padding: 0 18px; border-radius: 24px; cursor: pointer; }
@@ -41,26 +47,35 @@
     <p id="error-msg">Access Denied. Invalid Authorization Code.</p>
   </div>
 
-  <!-- Main Chat App -->
-  <header><h1>J.A.R.V.I.S.</h1></header>
-  <div id="chat-box">
-    <div class="msg jarvis">Security protocol cleared. Good day, Sir. All systems are fully operational.</div>
-  </div>
+  <!-- Chat UI -->
+  <header>
+    <h1>J.A.R.V.I.S.</h1>
+    <div class="header-actions">
+      <button class="header-btn" onclick="clearHistory()">🗑️ Clear</button>
+      <button class="header-btn" onclick="lockApp()">🔒 Lock</button>
+    </div>
+  </header>
+
+  <div id="chat-box"></div>
+
   <form id="input-form">
     <input id="user-input" type="text" placeholder="Ask J.A.R.V.I.S..." autocomplete="off" required />
     <button type="submit" id="send-btn">Send</button>
   </form>
 
   <script>
-    const API_KEY = "AQ.Ab8RN6JkZRVtfWTfMLunb0LG8kYSOuWIEhARhf8F5CtKfUy7eA";
+    const API_KEY = "AQ.Ab8RN6JkZRVtfWTfMLunb0LG8kYSOUWlEhARhf8F5CtKfUy7eA";
     const FAMILY_PIN = "2911";
-
-    const SYSTEM_PROMPT = "You are J.A.R.V.I.S., a sophisticated, witty, and loyal AI assistant created by Tony Stark. Address the user respectfully as 'Sir' or 'Boss' and keep answers concise, intelligent, and sharp.";
+    const SYSTEM_PROMPT = "You are J.A.R.V.I.S., a sophisticated, loyal, and witty AI assistant created by Tony Stark. Address the user respectfully as 'Sir' or 'Boss'. You remember past conversation context. Keep answers concise, direct, and intelligent.";
 
     const chatBox = document.getElementById("chat-box");
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
+    // Load Chat History from Local Storage
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_history")) || [];
+
+    // Check Authentication
     if (localStorage.getItem("jarvis_auth") === "true") {
       document.getElementById("lock-screen").style.display = "none";
     }
@@ -70,11 +85,43 @@
       if (pin === FAMILY_PIN) {
         localStorage.setItem("jarvis_auth", "true");
         document.getElementById("lock-screen").style.display = "none";
+        document.getElementById("error-msg").style.display = "none";
       } else {
         document.getElementById("error-msg").style.display = "block";
       }
     }
 
+    function lockApp() {
+      localStorage.removeItem("jarvis_auth");
+      document.getElementById("pin-input").value = "";
+      document.getElementById("lock-screen").style.display = "flex";
+    }
+
+    function clearHistory() {
+      if (confirm("Reset conversation logs and memory, Sir?")) {
+        conversationHistory = [];
+        localStorage.removeItem("jarvis_history");
+        chatBox.innerHTML = "";
+        appendMessage("Memory purged. System ready for new input, Sir.", "jarvis");
+      }
+    }
+
+    // Render Previous Chats on Page Load
+    function renderSavedMessages() {
+      chatBox.innerHTML = "";
+      if (conversationHistory.length === 0) {
+        appendMessage("Security protocol cleared. Good day, Sir. All systems are operational.", "jarvis");
+        return;
+      }
+      conversationHistory.forEach((item) => {
+        const sender = item.role === "user" ? "user" : "jarvis";
+        appendMessage(item.parts[0].text, sender);
+      });
+    }
+
+    renderSavedMessages();
+
+    // Handle Sending Messages
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const text = input.value.trim();
@@ -83,6 +130,9 @@
       appendMessage(text, "user");
       input.value = "";
 
+      // Append user message to contextual memory
+      conversationHistory.push({ role: "user", parts: [{ text: text }] });
+
       const jarvisBubble = appendMessage("", "jarvis");
       const cursor = document.createElement("span");
       cursor.className = "cursor";
@@ -90,15 +140,13 @@
 
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`,
           {
             method: "POST",
-            headers: { 
-              "Content-Type": "application/json",
-              "x-goog-api-key": API_KEY 
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: `${SYSTEM_PROMPT}\n\nUser: ${text}` }] }]
+              system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+              contents: conversationHistory
             })
           }
         );
@@ -107,14 +155,22 @@
         
         if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
           const reply = data.candidates[0].content.parts[0].text;
+          
+          // Save model response to memory
+          conversationHistory.push({ role: "model", parts: [{ text: reply }] });
+          localStorage.setItem("jarvis_history", JSON.stringify(conversationHistory));
+
           await typeWriter(reply, jarvisBubble, cursor);
         } else if (data.error) {
           jarvisBubble.textContent = `Diagnostic error: ${data.error.message}`;
+          conversationHistory.pop(); // Remove failed user prompt from context
         } else {
           jarvisBubble.textContent = "I was unable to process that request, Sir.";
+          conversationHistory.pop();
         }
       } catch (err) {
-        jarvisBubble.textContent = "Satellite uplink disrupted. Please check network connection.";
+        jarvisBubble.textContent = "Satellite uplink disrupted. Please verify connection.";
+        conversationHistory.pop();
       }
     });
 
@@ -143,7 +199,7 @@
             cursor.remove();
             resolve();
           }
-        }, 15);
+        }, 12);
       });
     }
   </script>
