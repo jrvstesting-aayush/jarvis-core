@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>J.A.R.V.I.S.</title>
   
-  <!-- Puter.js Engine -->
+  <!-- Puter.js AI Core -->
   <script src="https://js.puter.com/v2/"></script>
 
   <style>
@@ -108,7 +108,7 @@
     /* Chat Area */
     #chat-box { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
     .msg {
-      max-width: 86%;
+      max-width: 85%;
       padding: 13px 17px;
       border-radius: 16px;
       line-height: 1.6;
@@ -188,7 +188,7 @@
 </head>
 <body>
 
-  <!-- Security Screen -->
+  <!-- Lock Screen -->
   <div id="lock-screen">
     <h2>STARK SECURITY</h2>
     <p>Family Access Only!</p>
@@ -210,27 +210,26 @@
 
   <!-- Input Form -->
   <form id="input-form">
-    <input id="user-input" type="text" placeholder="Ask anything..." autocomplete="off" required />
+    <input id="user-input" type="text" placeholder="Ask J.A.R.V.I.S. anything..." autocomplete="off" required />
     <button type="submit" id="send-btn">Send</button>
   </form>
 
   <script>
-    // Configured for General Daily Use (ChatGPT & Gemini style)
     const PIN_PROFILES = {
       "2911": {
         name: "Maa",
-        greeting: "Hi Maa! I am ready to help you. What would you like to know or do today?",
-        systemInstruction: "You are a helpful, versatile daily AI assistant named J.A.R.V.I.S. You are speaking with Maa. Address her respectfully and kindly as Maa. Answer any question on any topic (recipes, health tips, daily plans, explanations, general questions) clearly, naturally, and warmly without technical jargon."
+        greeting: "Hi Maa! Security protocol cleared. What would you like to know today?",
+        systemInstruction: "You are an intelligent, daily AI assistant named J.A.R.V.I.S. You are speaking with Maa. Address her respectfully and kindly as Maa. Answer any question, calculate math, give advice, or chat warmly and clearly."
       },
       "1407": {
         name: "Papa",
-        greeting: "Hi Papa! All systems online. How can I assist you today?",
-        systemInstruction: "You are an intelligent, versatile daily AI assistant named J.A.R.V.I.S. You are speaking with Papa. Address him respectfully as Sir or Papa. Provide clear, direct, intelligent, and practical answers across news, general knowledge, work, and daily questions."
+        greeting: "Hi Papa! Security protocol cleared. All systems online. How can I assist you?",
+        systemInstruction: "You are an intelligent, daily AI assistant named J.A.R.V.I.S. You are speaking with Papa. Address him respectfully as Sir or Papa. Answer all questions, news, math, and daily queries crisply and intelligently."
       },
       "0000": {
         name: "Boss",
         greeting: "Good day, Boss! AI systems operational. What are we tackling today?",
-        systemInstruction: "You are a world-class text AI assistant named J.A.R.V.I.S. with the versatile problem-solving intelligence of ChatGPT and Gemini. Help with daily tasks: write messages, solve math, write code, explain topics, brainstorm ideas, and chat naturally. Be smart, concise, and helpful."
+        systemInstruction: "You are J.A.R.V.I.S., a world-class AI assistant with the versatile intelligence of ChatGPT and Gemini. Solve math, answer general queries, write text, code, and chat naturally. Be smart, sharp, and helpful."
       }
     };
 
@@ -238,7 +237,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_daily_history")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v5")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -272,7 +271,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_daily_history");
+        localStorage.removeItem("jarvis_chat_v5");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -306,30 +305,23 @@
       jarvisBubble.classList.add("cooking");
 
       try {
-        const messagesPayload = [
-          { role: "system", content: currentProfile.systemInstruction },
-          ...conversationHistory.slice(-8)
-        ];
+        let fullPrompt = `System: ${currentProfile.systemInstruction}\n\n`;
+        conversationHistory.slice(-6).forEach(m => {
+          fullPrompt += `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}\n`;
+        });
+        fullPrompt += `Assistant:`;
 
-        // Call Puter AI with ChatGPT backend
-        const response = await puter.ai.chat(messagesPayload, { model: 'gpt-4o-mini' });
+        const response = await puter.ai.chat(fullPrompt);
         
         jarvisBubble.classList.remove("cooking");
         jarvisBubble.textContent = "";
 
-        let reply = "";
-        if (typeof response === "string") {
-          reply = response;
-        } else if (response?.message?.content) {
-          reply = response.message.content;
-        } else if (response?.text) {
-          reply = response.text;
-        } else {
-          reply = "I am here and ready to help. What is your question?";
-        }
+        const reply = typeof response === "string" 
+          ? response 
+          : (response?.message?.content || response?.text || "Ready.");
 
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_daily_history", JSON.stringify(conversationHistory.slice(-12)));
+        localStorage.setItem("jarvis_chat_v5", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
@@ -338,7 +330,7 @@
 
       } catch (err) {
         jarvisBubble.classList.remove("cooking");
-        jarvisBubble.textContent = "Unable to process right now. Please tap send again.";
+        jarvisBubble.textContent = "Uplink interrupted. Please try again, Boss.";
         conversationHistory.pop();
       }
     });
