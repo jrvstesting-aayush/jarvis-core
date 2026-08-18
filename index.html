@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>J.A.R.V.I.S.</title>
+  
+  <!-- Puter.js Engine -->
+  <script src="https://js.puter.com/v2/"></script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     
@@ -104,10 +108,10 @@
     /* Chat Area */
     #chat-box { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
     .msg {
-      max-width: 84%;
+      max-width: 86%;
       padding: 13px 17px;
       border-radius: 16px;
-      line-height: 1.55;
+      line-height: 1.6;
       font-size: 0.95rem;
       word-break: break-word;
       white-space: pre-wrap;
@@ -206,26 +210,27 @@
 
   <!-- Input Form -->
   <form id="input-form">
-    <input id="user-input" type="text" placeholder="Talk to J.A.R.V.I.S..." autocomplete="off" required />
+    <input id="user-input" type="text" placeholder="Ask anything..." autocomplete="off" required />
     <button type="submit" id="send-btn">Send</button>
   </form>
 
   <script>
+    // Configured for General Daily Use (ChatGPT & Gemini style)
     const PIN_PROFILES = {
       "2911": {
         name: "Maa",
-        greeting: "Hi Maa! Security protocol cleared. All systems active and ready for you.",
-        systemInstruction: "You are J.A.R.V.I.S. speaking directly with Maa. Provide warm, polite, direct, and helpful 1-2 sentence answers."
+        greeting: "Hi Maa! I am ready to help you. What would you like to know or do today?",
+        systemInstruction: "You are a helpful, versatile daily AI assistant named J.A.R.V.I.S. You are speaking with Maa. Address her respectfully and kindly as Maa. Answer any question on any topic (recipes, health tips, daily plans, explanations, general questions) clearly, naturally, and warmly without technical jargon."
       },
       "1407": {
         name: "Papa",
-        greeting: "Hi Papa! Security protocol cleared. All systems online and operational.",
-        systemInstruction: "You are J.A.R.V.I.S. speaking directly with Papa. Provide crisp, direct, respectful, and intelligent 1-2 sentence answers."
+        greeting: "Hi Papa! All systems online. How can I assist you today?",
+        systemInstruction: "You are an intelligent, versatile daily AI assistant named J.A.R.V.I.S. You are speaking with Papa. Address him respectfully as Sir or Papa. Provide clear, direct, intelligent, and practical answers across news, general knowledge, work, and daily questions."
       },
       "0000": {
         name: "Boss",
-        greeting: "Security protocol cleared. Universal family access authorized. How may I help you today?",
-        systemInstruction: "You are J.A.R.V.I.S., Tony Stark's AI. Keep responses sharp, witty, intelligent, and under 2-3 sentences."
+        greeting: "Good day, Boss! AI systems operational. What are we tackling today?",
+        systemInstruction: "You are a world-class text AI assistant named J.A.R.V.I.S. with the versatile problem-solving intelligence of ChatGPT and Gemini. Help with daily tasks: write messages, solve math, write code, explain topics, brainstorm ideas, and chat naturally. Be smart, concise, and helpful."
       }
     };
 
@@ -233,7 +238,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_v4_history")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_daily_history")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -265,9 +270,9 @@
     }
 
     function clearHistory() {
-      if (confirm("Clear memory logs and start fresh, Boss?")) {
+      if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_v4_history");
+        localStorage.removeItem("jarvis_daily_history");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -287,34 +292,6 @@
 
     renderSavedMessages();
 
-    // Fast AI engine with automatic instant failover
-    async function requestAI(userText) {
-      const cleanPrompt = `Respond concisely in 1-2 short sentences as J.A.R.V.I.S. addressed to ${currentProfile.name}. User query: ${userText}`;
-      
-      try {
-        const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(cleanPrompt)}`);
-        if (res.ok) {
-          const txt = await res.text();
-          if (txt && !txt.includes("402 Payment") && !txt.includes("<!DOCTYPE") && txt.trim().length > 0) {
-            return txt.trim();
-          }
-        }
-      } catch (e) {}
-
-      // Built-in Instant Stark AI Matrix Fallback
-      const lower = userText.toLowerCase();
-      if (lower.includes("hi") || lower.includes("hello") || lower.includes("hey")) {
-        return `Good day, ${currentProfile.name === "Boss" ? "Sir" : currentProfile.name}. All systems are fully operational and standing by.`;
-      }
-      if (lower.includes("who are you") || lower.includes("your name")) {
-        return "I am J.A.R.V.I.S., your dedicated Stark Industries AI assistant.";
-      }
-      if (lower.includes("how are you")) {
-        return "Operating at peak diagnostic capacity, Sir. Ready for your instructions.";
-      }
-      return `Understood, ${currentProfile.name === "Boss" ? "Sir" : currentProfile.name}. Processing parameters and executing protocol immediately.`;
-    }
-
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const text = input.value.trim();
@@ -328,18 +305,42 @@
       const jarvisBubble = appendMessage("Your reply is cooking 😎...", "jarvis");
       jarvisBubble.classList.add("cooking");
 
-      const reply = await requestAI(text);
-      
-      jarvisBubble.classList.remove("cooking");
-      jarvisBubble.textContent = "";
+      try {
+        const messagesPayload = [
+          { role: "system", content: currentProfile.systemInstruction },
+          ...conversationHistory.slice(-8)
+        ];
 
-      conversationHistory.push({ role: "assistant", content: reply });
-      localStorage.setItem("jarvis_v4_history", JSON.stringify(conversationHistory.slice(-8)));
+        // Call Puter AI with ChatGPT backend
+        const response = await puter.ai.chat(messagesPayload, { model: 'gpt-4o-mini' });
+        
+        jarvisBubble.classList.remove("cooking");
+        jarvisBubble.textContent = "";
 
-      const cursor = document.createElement("span");
-      cursor.className = "cursor";
-      jarvisBubble.appendChild(cursor);
-      await ultraFastTypeWriter(reply, jarvisBubble, cursor);
+        let reply = "";
+        if (typeof response === "string") {
+          reply = response;
+        } else if (response?.message?.content) {
+          reply = response.message.content;
+        } else if (response?.text) {
+          reply = response.text;
+        } else {
+          reply = "I am here and ready to help. What is your question?";
+        }
+
+        conversationHistory.push({ role: "assistant", content: reply });
+        localStorage.setItem("jarvis_daily_history", JSON.stringify(conversationHistory.slice(-12)));
+
+        const cursor = document.createElement("span");
+        cursor.className = "cursor";
+        jarvisBubble.appendChild(cursor);
+        await ultraFastTypeWriter(reply, jarvisBubble, cursor);
+
+      } catch (err) {
+        jarvisBubble.classList.remove("cooking");
+        jarvisBubble.textContent = "Unable to process right now. Please tap send again.";
+        conversationHistory.pop();
+      }
     });
 
     function appendMessage(text, sender) {
