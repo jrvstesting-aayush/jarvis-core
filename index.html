@@ -130,7 +130,7 @@
     .cooking {
       font-style: italic;
       color: #38bdf8;
-      animation: pulse 1.4s ease-in-out infinite;
+      animation: pulse 1s ease-in-out infinite;
     }
     @keyframes pulse {
       0%, 100% { opacity: 0.5; }
@@ -215,17 +215,17 @@
       "2911": {
         name: "Maa",
         greeting: "Hi Maa! Security protocol cleared. All systems active and ready for you.",
-        systemInstruction: "You are J.A.R.V.I.S., a loyal, hyper-intelligent assistant created by Tony Stark. You are speaking with Maa. Address her respectfully and keep answers warm, clear, concise, and helpful."
+        systemInstruction: "You are J.A.R.V.I.S. speaking with Maa. Give extremely fast, clear, warm, 1-2 sentence answers."
       },
       "1407": {
         name: "Papa",
         greeting: "Hi Papa! Security protocol cleared. All systems online and operational.",
-        systemInstruction: "You are J.A.R.V.I.S., a loyal, hyper-intelligent assistant created by Tony Stark. You are speaking with Papa. Address him respectfully as Sir/Papa and keep answers crisp, direct, and intelligent."
+        systemInstruction: "You are J.A.R.V.I.S. speaking with Papa. Give extremely crisp, direct, fast, 1-2 sentence answers."
       },
       "0000": {
-        name: "Family Member",
+        name: "Boss",
         greeting: "Security protocol cleared. Universal family access authorized. How may I help you today?",
-        systemInstruction: "You are J.A.R.V.I.S., a sophisticated AI created by Tony Stark. Address the user politely and keep answers concise, witty, and smart."
+        systemInstruction: "You are J.A.R.V.I.S. Keep responses extremely fast, punchy, smart, and under 2-3 sentences."
       }
     };
 
@@ -233,7 +233,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_v3_history")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_turbo_history")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -267,7 +267,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh, Boss?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_v3_history");
+        localStorage.removeItem("jarvis_turbo_history");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -287,42 +287,19 @@
 
     renderSavedMessages();
 
-    // Multi-tier free AI engine with zero rate limits
-    async function queryFreeAI(userText) {
-      const promptContext = `${currentProfile.systemInstruction}\nUser: ${userText}\nJ.A.R.V.I.S:`;
+    // Turbo query pipeline
+    async function queryTurboAI(userText) {
+      const prompt = `${currentProfile.systemInstruction}\nUser: ${userText}\nJARVIS:`;
+      const url = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=mistral&seed=${Math.floor(Math.random() * 1000)}`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Connection dropped");
+      const txt = await res.text();
       
-      // Route 1: Free Unrestricted Llama Engine
-      try {
-        const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptContext)}`);
-        if (res.ok) {
-          const txt = await res.text();
-          if (txt && !txt.includes("402 Payment") && !txt.includes("<!DOCTYPE") && txt.trim().length > 0) {
-            return txt.trim();
-          }
-        }
-      } catch (e) {}
-
-      // Route 2: Free Cloudflare AI Fallback
-      try {
-        const res = await fetch("https://text.pollinations.ai/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: [
-              { role: "system", content: currentProfile.systemInstruction },
-              { role: "user", content: userText }
-            ]
-          })
-        });
-        if (res.ok) {
-          const txt = await res.text();
-          if (txt && !txt.includes("402 Payment") && txt.trim().length > 0) {
-            return txt.trim();
-          }
-        }
-      } catch (e) {}
-
-      throw new Error("Uplink unavailable");
+      if (!txt || txt.includes("<!DOCTYPE") || txt.includes("402 Payment")) {
+        throw new Error("Invalid output");
+      }
+      return txt.trim();
     }
 
     form.addEventListener("submit", async (e) => {
@@ -339,21 +316,21 @@
       jarvisBubble.classList.add("cooking");
 
       try {
-        const reply = await queryFreeAI(text);
+        const reply = await queryTurboAI(text);
         
         jarvisBubble.classList.remove("cooking");
         jarvisBubble.textContent = "";
 
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_v3_history", JSON.stringify(conversationHistory));
+        localStorage.setItem("jarvis_turbo_history", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
         jarvisBubble.appendChild(cursor);
-        await typeWriter(reply, jarvisBubble, cursor);
+        await ultraFastTypeWriter(reply, jarvisBubble, cursor);
       } catch (err) {
         jarvisBubble.classList.remove("cooking");
-        jarvisBubble.textContent = "Satellite link is down. Check connection, Boss.";
+        jarvisBubble.textContent = "Satellite uplink disrupted. Run it back, Boss.";
         conversationHistory.pop();
       }
     });
@@ -367,7 +344,8 @@
       return div;
     }
 
-    function typeWriter(text, element, cursor) {
+    // High-speed multi-character typing engine
+    function ultraFastTypeWriter(text, element, cursor) {
       return new Promise((resolve) => {
         let i = 0;
         element.textContent = "";
@@ -375,17 +353,20 @@
         
         const interval = setInterval(() => {
           if (i < text.length) {
-            cursor.insertAdjacentText("beforebegin", text.charAt(i));
-            i++;
+            // Types 3 characters at a time every 4ms
+            const chunk = text.slice(i, i + 3);
+            cursor.insertAdjacentText("beforebegin", chunk);
+            i += 3;
             chatBox.scrollTop = chatBox.scrollHeight;
           } else {
             clearInterval(interval);
             cursor.remove();
             resolve();
           }
-        }, 12);
+        }, 4);
       });
     }
   </script>
 </body>
 </html>
+
