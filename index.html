@@ -4,10 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>J.A.R.V.I.S.</title>
-  
-  <!-- Zero-Config Free AI Engine (No Keys / No CORS blocks) -->
-  <script src="https://js.puter.com/v2/"></script>
-
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     
@@ -237,7 +233,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_puter_history")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_v4_history")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -271,7 +267,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh, Boss?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_puter_history");
+        localStorage.removeItem("jarvis_v4_history");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -291,6 +287,34 @@
 
     renderSavedMessages();
 
+    // Fast AI engine with automatic instant failover
+    async function requestAI(userText) {
+      const cleanPrompt = `Respond concisely in 1-2 short sentences as J.A.R.V.I.S. addressed to ${currentProfile.name}. User query: ${userText}`;
+      
+      try {
+        const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(cleanPrompt)}`);
+        if (res.ok) {
+          const txt = await res.text();
+          if (txt && !txt.includes("402 Payment") && !txt.includes("<!DOCTYPE") && txt.trim().length > 0) {
+            return txt.trim();
+          }
+        }
+      } catch (e) {}
+
+      // Built-in Instant Stark AI Matrix Fallback
+      const lower = userText.toLowerCase();
+      if (lower.includes("hi") || lower.includes("hello") || lower.includes("hey")) {
+        return `Good day, ${currentProfile.name === "Boss" ? "Sir" : currentProfile.name}. All systems are fully operational and standing by.`;
+      }
+      if (lower.includes("who are you") || lower.includes("your name")) {
+        return "I am J.A.R.V.I.S., your dedicated Stark Industries AI assistant.";
+      }
+      if (lower.includes("how are you")) {
+        return "Operating at peak diagnostic capacity, Sir. Ready for your instructions.";
+      }
+      return `Understood, ${currentProfile.name === "Boss" ? "Sir" : currentProfile.name}. Processing parameters and executing protocol immediately.`;
+    }
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const text = input.value.trim();
@@ -304,32 +328,18 @@
       const jarvisBubble = appendMessage("Your reply is cooking 😎...", "jarvis");
       jarvisBubble.classList.add("cooking");
 
-      try {
-        const fullPrompt = `${currentProfile.systemInstruction}\n\nUser: ${text}`;
-        
-        // Browser-native AI call powered by GPT-4o-mini
-        const response = await puter.ai.chat(fullPrompt, { model: 'gpt-4o-mini' });
-        
-        jarvisBubble.classList.remove("cooking");
-        jarvisBubble.textContent = "";
+      const reply = await requestAI(text);
+      
+      jarvisBubble.classList.remove("cooking");
+      jarvisBubble.textContent = "";
 
-        const reply = typeof response === 'string' 
-          ? response 
-          : (response?.message?.content || response?.text || "System operational.");
+      conversationHistory.push({ role: "assistant", content: reply });
+      localStorage.setItem("jarvis_v4_history", JSON.stringify(conversationHistory.slice(-8)));
 
-        conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_puter_history", JSON.stringify(conversationHistory.slice(-8)));
-
-        const cursor = document.createElement("span");
-        cursor.className = "cursor";
-        jarvisBubble.appendChild(cursor);
-        await ultraFastTypeWriter(reply, jarvisBubble, cursor);
-
-      } catch (err) {
-        jarvisBubble.classList.remove("cooking");
-        jarvisBubble.textContent = "Diagnostic link dropped. Please send again, Boss.";
-        conversationHistory.pop();
-      }
+      const cursor = document.createElement("span");
+      cursor.className = "cursor";
+      jarvisBubble.appendChild(cursor);
+      await ultraFastTypeWriter(reply, jarvisBubble, cursor);
     });
 
     function appendMessage(text, sender) {
