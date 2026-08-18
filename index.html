@@ -7,20 +7,21 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     
+    /* Midnight Red-Blue Background */
     body {
-      background: radial-gradient(circle at top left, #1a0814 0%, #080c18 50%, #05070f 100%);
+      background: radial-gradient(circle at top left, #1e0915 0%, #080d1a 50%, #05070e 100%);
       color: #f1f5f9;
       display: flex;
       flex-direction: column;
       height: 100dvh;
     }
-    
-    /* Security Lock Screen */
+
+    /* Lock Screen */
     #lock-screen {
       position: fixed;
       inset: 0;
-      background: rgba(7, 10, 19, 0.95);
-      backdrop-filter: blur(12px);
+      background: rgba(7, 10, 19, 0.96);
+      backdrop-filter: blur(16px);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -33,15 +34,21 @@
       background: linear-gradient(135deg, #ef4444, #38bdf8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      font-size: 1.6rem;
       letter-spacing: 4px;
-      margin-bottom: 6px;
-      font-size: 1.5rem;
       font-weight: 800;
+      margin-bottom: 6px;
     }
-    #lock-screen p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 24px; letter-spacing: 1px; }
+    #lock-screen p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      margin-bottom: 24px;
+    }
     #pin-input {
-      background: rgba(15, 23, 42, 0.8);
-      border: 1.5px solid #dc2626;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1.5px solid #ef4444;
       color: #38bdf8;
       font-size: 1.6rem;
       text-align: center;
@@ -51,43 +58,43 @@
       width: 190px;
       outline: none;
       margin-bottom: 18px;
-      box-shadow: 0 0 15px rgba(220, 38, 38, 0.25);
+      box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
     }
     #unlock-btn {
       background: linear-gradient(135deg, #ef4444, #0284c7);
       color: #fff;
       border: none;
-      padding: 12px 30px;
+      padding: 12px 32px;
       border-radius: 24px;
       font-weight: 700;
       letter-spacing: 1px;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+      box-shadow: 0 4px 16px rgba(2, 132, 199, 0.35);
     }
     #error-msg { color: #f43f5e; font-size: 0.85rem; margin-top: 14px; display: none; }
 
-    /* App Header */
+    /* Header */
     header {
       padding: 14px 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid rgba(239, 68, 68, 0.2);
-      background: rgba(15, 23, 42, 0.75);
+      border-bottom: 1px solid rgba(239, 68, 68, 0.25);
+      background: rgba(15, 23, 42, 0.8);
       backdrop-filter: blur(10px);
     }
     header h1 {
       font-size: 1.15rem;
-      letter-spacing: 3px;
       font-weight: 800;
+      letter-spacing: 3px;
       background: linear-gradient(135deg, #ef4444, #38bdf8);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     .header-actions { display: flex; gap: 8px; }
     .header-btn {
-      background: rgba(30, 41, 59, 0.7);
-      border: 1px solid rgba(56, 189, 248, 0.2);
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(56, 189, 248, 0.25);
       color: #cbd5e1;
       border-radius: 10px;
       padding: 6px 12px;
@@ -98,7 +105,7 @@
     /* Chat Area */
     #chat-box { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
     .msg {
-      max-width: 82%;
+      max-width: 84%;
       padding: 13px 17px;
       border-radius: 16px;
       line-height: 1.55;
@@ -106,6 +113,7 @@
       word-break: break-word;
       white-space: pre-wrap;
     }
+    /* Reddish User Bubble */
     .user {
       align-self: flex-end;
       background: linear-gradient(135deg, #ef4444, #b91c1c);
@@ -113,13 +121,23 @@
       border-bottom-right-radius: 3px;
       box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25);
     }
+    /* Bluish J.A.R.V.I.S. Card */
     .jarvis {
       align-self: flex-start;
       background: rgba(15, 23, 42, 0.85);
-      color: #e2e8f0;
+      color: #f1f5f9;
       border: 1px solid rgba(56, 189, 248, 0.35);
       border-bottom-left-radius: 3px;
       box-shadow: 0 4px 18px rgba(56, 189, 248, 0.12);
+    }
+    .cooking {
+      font-style: italic;
+      color: #38bdf8;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
     }
     .cursor {
       display: inline-block;
@@ -137,7 +155,7 @@
       display: flex;
       gap: 10px;
       padding: 14px 16px;
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.9);
       backdrop-filter: blur(10px);
       border-top: 1px solid rgba(56, 189, 248, 0.2);
     }
@@ -153,7 +171,7 @@
     }
     input[type="text"]:focus {
       border-color: #ef4444;
-      box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.35);
     }
     #send-btn {
       background: linear-gradient(135deg, #ef4444, #0284c7);
@@ -172,15 +190,15 @@
   <!-- Security Screen -->
   <div id="lock-screen">
     <h2>STARK SECURITY</h2>
-    <p>FAMILY ACCESS ONLY • VIBE CHECK</p>
+    <p>Family Access Only!</p>
     <input type="password" id="pin-input" maxlength="6" placeholder="••••" inputmode="numeric" />
     <button id="unlock-btn" onclick="verifyPin()">AUTHENTICATE</button>
     <p id="error-msg">Access Denied. Passcode ain't it, boss.</p>
   </div>
 
-  <!-- Chat UI -->
+  <!-- Header -->
   <header>
-    <h1>J.A.R.V.I.S.</h1>
+    <h1>✦ J.A.R.V.I.S.</h1>
     <div class="header-actions">
       <button class="header-btn" onclick="clearHistory()">🗑️ Reset</button>
       <button class="header-btn" onclick="lockApp()">🔒 Lock</button>
@@ -189,23 +207,38 @@
 
   <div id="chat-box"></div>
 
+  <!-- Input Form -->
   <form id="input-form">
     <input id="user-input" type="text" placeholder="Talk to J.A.R.V.I.S..." autocomplete="off" required />
     <button type="submit" id="send-btn">Send</button>
   </form>
 
   <script>
-    const API_KEY = "AQ.Ab8RN6LIk_spFQI2Z5pQUhuHzinEjlSISOP7OG2Bl3ua-wfrcQ";
-    const FAMILY_PIN = "2911";
-    
-    // Stark Intelligence with a subtle, effortless Gen-Z wit
-    const SYSTEM_PROMPT = "You are J.A.R.V.I.S., a hyper-intelligent, loyal AI assistant created by Tony Stark. You speak with a polished yet subtle modern Gen-Z edge—lowkey witty, effortless, and sharp without being cringe or exaggerated. Address the user respectfully as 'Sir' or 'Boss'. You remember past conversation context. Keep answers concise, high-IQ, and helpful.";
+    // 3 Configured PIN Profiles
+    const PIN_PROFILES = {
+      "2911": {
+        name: "Maa",
+        greeting: "Hi Maa! Security protocol cleared. All systems active and ready for you.",
+        systemInstruction: "You are J.A.R.V.I.S., a hyper-intelligent, polite, and helpful AI assistant created by Tony Stark. You are speaking with Maa. Address her respectfully and keep responses kind, witty, clear, and helpful."
+      },
+      "1407": {
+        name: "Papa",
+        greeting: "Hi Papa! Security protocol cleared. All systems online and operational.",
+        systemInstruction: "You are J.A.R.V.I.S., a hyper-intelligent, polite, and sharp AI assistant created by Tony Stark. You are speaking with Papa. Address him respectfully as Sir/Papa and keep answers crisp, direct, and intelligent."
+      },
+      "0000": {
+        name: "Family Member",
+        greeting: "Security protocol cleared. Universal family access authorized. How may I help you today?",
+        systemInstruction: "You are J.A.R.V.I.S., a sophisticated AI assistant created by Tony Stark. Address the user politely and keep answers concise, witty, and smart."
+      }
+    };
 
     const chatBox = document.getElementById("chat-box");
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_history")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chatgpt_history")) || [];
+    let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
       document.getElementById("lock-screen").style.display = "none";
@@ -213,10 +246,17 @@
 
     function verifyPin() {
       const pin = document.getElementById("pin-input").value;
-      if (pin === FAMILY_PIN) {
+      if (PIN_PROFILES[pin]) {
+        currentProfile = PIN_PROFILES[pin];
         localStorage.setItem("jarvis_auth", "true");
+        localStorage.setItem("jarvis_profile", JSON.stringify(currentProfile));
+        
         document.getElementById("lock-screen").style.display = "none";
         document.getElementById("error-msg").style.display = "none";
+        
+        if (conversationHistory.length === 0) {
+          renderSavedMessages();
+        }
       } else {
         document.getElementById("error-msg").style.display = "block";
       }
@@ -231,21 +271,21 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh, Sir?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_history");
+        localStorage.removeItem("jarvis_chatgpt_history");
         chatBox.innerHTML = "";
-        appendMessage("Memory cleared. System is refreshed and locked in, Boss.", "jarvis");
+        appendMessage(currentProfile.greeting, "jarvis");
       }
     }
 
     function renderSavedMessages() {
       chatBox.innerHTML = "";
       if (conversationHistory.length === 0) {
-        appendMessage("Security protocol cleared. All systems locked in. What are we building today, Boss?", "jarvis");
+        appendMessage(currentProfile.greeting, "jarvis");
         return;
       }
       conversationHistory.forEach((item) => {
         const sender = item.role === "user" ? "user" : "jarvis";
-        appendMessage(item.parts[0].text, sender);
+        appendMessage(item.content, sender);
       });
     }
 
@@ -259,46 +299,44 @@
       appendMessage(text, "user");
       input.value = "";
 
-      conversationHistory.push({ role: "user", parts: [{ text: text }] });
+      conversationHistory.push({ role: "user", content: text });
 
-      const jarvisBubble = appendMessage("", "jarvis");
-      const cursor = document.createElement("span");
-      cursor.className = "cursor";
-      jarvisBubble.appendChild(cursor);
+      const jarvisBubble = appendMessage("Your reply is cooking 😎...", "jarvis");
+      jarvisBubble.classList.add("cooking");
 
       try {
-        const response = await fetch(
-          "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-goog-api-key": API_KEY
-            },
-            body: JSON.stringify({
-              system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-              contents: conversationHistory
-            })
-          }
-        );
+        const response = await fetch("https://text.pollinations.ai/openai", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [
+              { role: "system", content: currentProfile.systemInstruction },
+              ...conversationHistory
+            ],
+            model: "openai",
+            seed: 42
+          })
+        });
 
-        const data = await response.json();
+        const reply = await response.text();
         
-        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-          const reply = data.candidates[0].content.parts[0].text;
-          
-          conversationHistory.push({ role: "model", parts: [{ text: reply }] });
-          localStorage.setItem("jarvis_history", JSON.stringify(conversationHistory));
+        jarvisBubble.classList.remove("cooking");
+        jarvisBubble.textContent = "";
 
+        if (reply) {
+          conversationHistory.push({ role: "assistant", content: reply });
+          localStorage.setItem("jarvis_chatgpt_history", JSON.stringify(conversationHistory));
+
+          const cursor = document.createElement("span");
+          cursor.className = "cursor";
+          jarvisBubble.appendChild(cursor);
           await typeWriter(reply, jarvisBubble, cursor);
-        } else if (data.error) {
-          jarvisBubble.textContent = `Diagnostic error: ${data.error.message}`;
-          conversationHistory.pop();
         } else {
-          jarvisBubble.textContent = "Couldn't process that one, Sir. Run it back.";
+          jarvisBubble.textContent = "Couldn't process that one, Boss. Run it back.";
           conversationHistory.pop();
         }
       } catch (err) {
+        jarvisBubble.classList.remove("cooking");
         jarvisBubble.textContent = "Satellite link is down. Check connection, Boss.";
         conversationHistory.pop();
       }
