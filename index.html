@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>J.A.R.V.I.S.</title>
 
+  <!-- Puter.js SDK -->
+  <script src="https://js.puter.com/v2/"></script>
+
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     
@@ -290,7 +293,6 @@
       }
     };
 
-    // Alternating Passcode Error Messages
     const ERROR_MESSAGES = [
       "Negative aura passcode. Try again, Twin 💀.",
       "Incorrect passcode. Try again."
@@ -301,7 +303,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v38")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v39")) || [];
     let currentProfile = PIN_PROFILES["0000"];
 
     // 😈 Intro animation
@@ -352,7 +354,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v38");
+        localStorage.removeItem("jarvis_chat_v39");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -372,8 +374,8 @@
 
     renderSavedMessages();
 
-    // 100% Reliable Direct AI Pipeline
-    async function queryAI(systemText, userMessage, history) {
+    // High-Speed Puter.js Engine
+    async function queryPuter(systemText, userMessage, history) {
       const messages = [
         { role: "system", content: systemText }
       ];
@@ -387,43 +389,37 @@
 
       messages.push({ role: "user", content: userMessage });
 
-      // Primary Direct Pipeline
-      try {
-        const res = await fetch("https://text.pollinations.ai/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: messages,
-            model: "openai",
-            temperature: 0.7
-          })
-        });
-
-        if (res.ok) {
-          const text = await res.text();
-          if (text && text.trim() && !text.startsWith("<!DOCTYPE")) {
-            return text.trim();
-          }
+      // Puter AI Chat
+      if (window.puter && puter.ai) {
+        try {
+          const res = await puter.ai.chat(messages);
+          let reply = "";
+          if (typeof res === "string") reply = res;
+          else if (res?.message?.content) reply = res.message.content;
+          else if (res?.text) reply = res.text;
+          
+          if (reply && reply.trim()) return reply.trim();
+        } catch (err) {
+          console.warn("Puter engine error, fallback triggered...", err);
         }
-      } catch (e) {
-        console.warn("Pipeline 1 failed, trying fallback...", e);
       }
 
-      // Fallback Direct GET Pipeline
-      try {
-        const directUrl = `https://text.pollinations.ai/${encodeURIComponent(userMessage)}?system=${encodeURIComponent(systemText)}&model=openai`;
-        const resGet = await fetch(directUrl);
-        if (resGet.ok) {
-          const textGet = await resGet.text();
-          if (textGet && textGet.trim() && !textGet.startsWith("<!DOCTYPE")) {
-            return textGet.trim();
-          }
-        }
-      } catch (err) {
-        console.error("Pipeline 2 failed", err);
+      // 100% Fast Backup Pipeline
+      const backupRes = await fetch("https://text.pollinations.ai/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: messages,
+          model: "openai"
+        })
+      });
+
+      if (backupRes.ok) {
+        const text = await backupRes.text();
+        if (text && text.trim()) return text.trim();
       }
 
-      throw new Error("Network busy. Please tap Send once more.");
+      throw new Error("Unable to connect. Please try again.");
     }
 
     form.addEventListener("submit", async (e) => {
@@ -442,14 +438,14 @@
       chatBox.scrollTop = chatBox.scrollHeight;
 
       try {
-        const reply = await queryAI(currentProfile.systemInstruction, text, conversationHistory);
+        const reply = await queryPuter(currentProfile.systemInstruction, text, conversationHistory);
         
         jarvisBubble.classList.remove("genz-cooking");
         jarvisBubble.innerHTML = "";
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v38", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v39", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
