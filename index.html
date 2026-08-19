@@ -375,7 +375,7 @@
 
     renderSavedMessages();
 
-    // Groq AI Request Engine
+    // Groq AI Request Engine with Active Production Endpoints
     async function queryGroq(systemText, userMessage, history) {
       const messages = [];
       messages.push({ role: "system", content: systemText });
@@ -389,7 +389,6 @@
 
       messages.push({ role: "user", content: userMessage });
 
-      // Active supported models on Groq
       const GROQ_MODELS = [
         "llama-3.3-70b-versatile",
         "deepseek-r1-distill-llama-70b",
@@ -417,7 +416,6 @@
           const data = await res.json();
 
           if (res.ok && data.choices?.[0]?.message?.content) {
-            // Strip out thinking tags if deepseek is used
             let textOutput = data.choices[0].message.content;
             textOutput = textOutput.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
             return textOutput;
@@ -502,4 +500,3 @@
   </script>
 </body>
 </html>
-
