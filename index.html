@@ -304,7 +304,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v28")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v29")) || [];
     let currentProfile = PIN_PROFILES["0000"];
 
     // 😈 Shrink & vanish animation on initial boot
@@ -355,7 +355,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v28");
+        localStorage.removeItem("jarvis_chat_v29");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -375,7 +375,7 @@
 
     renderSavedMessages();
 
-    // Active Production Groq Models
+    // Active Production Groq Models Only
     async function queryGroq(systemText, userMessage, history) {
       const messages = [];
       messages.push({ role: "system", content: systemText });
@@ -391,8 +391,7 @@
 
       const GROQ_MODELS = [
         "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
-        "gemma2-9b-it"
+        "llama-3.1-8b-instant"
       ];
 
       let lastError = null;
@@ -453,7 +452,7 @@
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v28", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v29", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
@@ -498,3 +497,4 @@
   </script>
 </body>
 </html>
+
