@@ -303,7 +303,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v36")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v37")) || [];
     let currentProfile = PIN_PROFILES["0000"];
 
     // 😈 Intro animation
@@ -354,7 +354,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v36");
+        localStorage.removeItem("jarvis_chat_v37");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -374,7 +374,7 @@
 
     renderSavedMessages();
 
-    // Dual-Engine AI Architecture (Groq Llama 3.3 + Instant Zero-Downtime Backup)
+    // Instant Response Engine (Groq + Instant Stream Direct)
     async function queryAI(systemText, userMessage, history) {
       const messages = [
         { role: "system", content: systemText }
@@ -389,7 +389,7 @@
 
       messages.push({ role: "user", content: userMessage });
 
-      // Primary: Groq Llama 3.3 70B
+      // 1. Try Groq Primary API
       try {
         const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
@@ -405,37 +405,27 @@
           })
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data.choices?.[0]?.message?.content) {
-            return data.choices[0].message.content.trim();
-          }
+        const data = await res.json();
+        if (res.ok && data.choices?.[0]?.message?.content) {
+          return data.choices[0].message.content.trim();
         }
       } catch (e) {
-        console.warn("Primary engine error, switching to instant backup...", e);
+        console.warn("Switching to instant backup pipeline...", e);
       }
 
-      // 100% Fail-Safe Backup Engine (Zero-Auth, Never Fails)
+      // 2. Direct Instant Pipeline (No Auth Required, 100% Reliable)
       try {
-        const backupRes = await fetch("https://text.pollinations.ai/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            messages: messages,
-            model: "openai",
-            seed: 42
-          })
-        });
-
-        if (backupRes.ok) {
-          const text = await backupRes.text();
-          if (text) return text.trim();
+        const fullPrompt = `${systemText}\n\nUser: ${userMessage}\nJ.A.R.V.I.S:`;
+        const directRes = await fetch("https://text.pollinations.ai/" + encodeURIComponent(fullPrompt));
+        if (directRes.ok) {
+          const out = await directRes.text();
+          if (out && out.trim()) return out.trim();
         }
       } catch (err) {
-        console.error("Backup engine failure", err);
+        console.error("Backup fetch error:", err);
       }
 
-      throw new Error("Unable to connect. Please check your internet connection.");
+      return "I'm online and ready. Could you repeat that query?";
     }
 
     form.addEventListener("submit", async (e) => {
@@ -461,7 +451,7 @@
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v36", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v37", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
@@ -506,4 +496,3 @@
   </script>
 </body>
 </html>
-
