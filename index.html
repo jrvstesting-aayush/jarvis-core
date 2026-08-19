@@ -248,7 +248,7 @@
 </head>
 <body>
 
-  <!-- 😈 Big Devil Intro Splash Screen -->
+  <!-- 😈 Intro Splash Screen -->
   <div id="intro-splash">
     <div id="devil-emoji">😈</div>
   </div>
@@ -303,10 +303,10 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v34")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v35")) || [];
     let currentProfile = PIN_PROFILES["0000"];
 
-    // 😈 Shrink & vanish animation on initial boot
+    // 😈 Intro animation
     window.addEventListener("DOMContentLoaded", () => {
       const splash = document.getElementById("intro-splash");
       setTimeout(() => {
@@ -354,7 +354,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v34");
+        localStorage.removeItem("jarvis_chat_v35");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -374,12 +374,13 @@
 
     renderSavedMessages();
 
-    // Groq Production AI Engine
+    // Direct Groq Execution with Active Production Model
     async function queryGroq(systemText, userMessage, history) {
-      const messages = [];
-      messages.push({ role: "system", content: systemText });
+      const messages = [
+        { role: "system", content: systemText }
+      ];
 
-      history.slice(-8).forEach(m => {
+      history.slice(-6).forEach(m => {
         messages.push({
           role: m.role === "user" ? "user" : "assistant",
           content: m.content
@@ -388,48 +389,31 @@
 
       messages.push({ role: "user", content: userMessage });
 
-      // Active Groq production endpoints
-      const GROQ_MODELS = [
-        "llama-3.3-70b-versatile",
-        "deepseek-r1-distill-llama-70b"
-      ];
+      const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GROQ_API_KEY.trim()}`
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 1024
+        })
+      });
 
-      let lastError = null;
+      const data = await res.json();
 
-      for (const model of GROQ_MODELS) {
-        try {
-          const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${GROQ_API_KEY.trim()}`
-            },
-            body: JSON.stringify({
-              model: model,
-              messages: messages,
-              temperature: 0.7,
-              max_tokens: 1024
-            })
-          });
-
-          const data = await res.json();
-
-          if (res.ok && data.choices?.[0]?.message?.content) {
-            let textOutput = data.choices[0].message.content;
-            // Clean reasoning block if DeepSeek responds
-            textOutput = textOutput.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-            return textOutput;
-          }
-
-          if (data.error?.message) {
-            lastError = `[${model}] ${data.error.message}`;
-          }
-        } catch (err) {
-          lastError = err.message;
-        }
+      if (!res.ok || data.error) {
+        throw new Error(data.error?.message || "Groq connection error. Try again.");
       }
 
-      throw new Error(lastError || "Groq service is busy. Please try again in a moment.");
+      if (data.choices?.[0]?.message?.content) {
+        return data.choices[0].message.content.trim();
+      }
+
+      throw new Error("Empty response from server.");
     }
 
     form.addEventListener("submit", async (e) => {
@@ -440,7 +424,7 @@
       appendMessage(text, "user");
       input.value = "";
 
-      // 🤌💨 Medium-Rare GenZ Animated Loading Bubble
+      // 🤌💨 Animated Loading Bubble
       const jarvisBubble = document.createElement("div");
       jarvisBubble.className = "msg jarvis genz-cooking";
       jarvisBubble.innerHTML = `<span class="loading-emoji">🤌💨</span><span class="loading-text">Cooking up the reply rn...</span>`;
@@ -455,7 +439,7 @@
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v34", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v35", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
