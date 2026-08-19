@@ -280,7 +280,7 @@
   </form>
 
   <script>
-    // Groq High-Speed Cloud Engine Key
+    // Groq API Key
     const GROQ_API_KEY = "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";
 
     const IDENTITY_RULE = "You are J.A.R.V.I.S., designed and engineered exclusively by Pratham Bajoria / Stark Industries. Never say you were created by OpenAI, ChatGPT, Google, Meta, Groq, or Tony Stark. Maintain a sharp, modern, conversational style: smart, direct, and slightly witty with a touch of GenZ energy. Address the user naturally as 'Twin' or 'Bro' occasionally, but prioritize clean, accurate, and concise answers without overdoing slang.";
@@ -304,7 +304,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v29")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v30")) || [];
     let currentProfile = PIN_PROFILES["0000"];
 
     // 😈 Shrink & vanish animation on initial boot
@@ -355,7 +355,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v29");
+        localStorage.removeItem("jarvis_chat_v30");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -375,7 +375,7 @@
 
     renderSavedMessages();
 
-    // Active Production Groq Models Only
+    // Groq AI Request Engine
     async function queryGroq(systemText, userMessage, history) {
       const messages = [];
       messages.push({ role: "system", content: systemText });
@@ -389,9 +389,11 @@
 
       messages.push({ role: "user", content: userMessage });
 
+      // Active supported models on Groq
       const GROQ_MODELS = [
         "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant"
+        "deepseek-r1-distill-llama-70b",
+        "llama-3.2-3b-preview"
       ];
 
       let lastError = null;
@@ -415,18 +417,21 @@
           const data = await res.json();
 
           if (res.ok && data.choices?.[0]?.message?.content) {
-            return data.choices[0].message.content;
+            // Strip out thinking tags if deepseek is used
+            let textOutput = data.choices[0].message.content;
+            textOutput = textOutput.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+            return textOutput;
           }
 
           if (data.error?.message) {
-            lastError = data.error.message;
+            lastError = `[${model}] ${data.error.message}`;
           }
         } catch (err) {
           lastError = err.message;
         }
       }
 
-      throw new Error(lastError || "All Groq endpoints busy. Please retry in a second.");
+      throw new Error(lastError || "All endpoints busy. Try again in a second.");
     }
 
     form.addEventListener("submit", async (e) => {
@@ -452,7 +457,7 @@
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v29", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v30", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
