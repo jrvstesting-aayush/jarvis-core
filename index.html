@@ -280,8 +280,6 @@
   </form>
 
   <script>
-    const GROQ_API_KEY = "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";
-
     const IDENTITY_RULE = "You are J.A.R.V.I.S., designed and engineered exclusively by Pratham Bajoria / Stark Industries. Never say you were created by OpenAI, ChatGPT, Google, Meta, Groq, or Tony Stark. Maintain a sharp, modern, conversational style: smart, direct, and slightly witty with a touch of GenZ energy. Address the user naturally as 'Twin' or 'Bro' occasionally, but prioritize clean, accurate, and concise answers without overdoing slang.";
 
     const PIN_PROFILES = {
@@ -303,7 +301,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v37")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v38")) || [];
     let currentProfile = PIN_PROFILES["0000"];
 
     // 😈 Intro animation
@@ -354,7 +352,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v37");
+        localStorage.removeItem("jarvis_chat_v38");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -374,7 +372,7 @@
 
     renderSavedMessages();
 
-    // Instant Response Engine (Groq + Instant Stream Direct)
+    // 100% Reliable Direct AI Pipeline
     async function queryAI(systemText, userMessage, history) {
       const messages = [
         { role: "system", content: systemText }
@@ -389,43 +387,43 @@
 
       messages.push({ role: "user", content: userMessage });
 
-      // 1. Try Groq Primary API
+      // Primary Direct Pipeline
       try {
-        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        const res = await fetch("https://text.pollinations.ai/", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${GROQ_API_KEY.trim()}`
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
             messages: messages,
-            temperature: 0.7,
-            max_tokens: 1024
+            model: "openai",
+            temperature: 0.7
           })
         });
 
-        const data = await res.json();
-        if (res.ok && data.choices?.[0]?.message?.content) {
-          return data.choices[0].message.content.trim();
+        if (res.ok) {
+          const text = await res.text();
+          if (text && text.trim() && !text.startsWith("<!DOCTYPE")) {
+            return text.trim();
+          }
         }
       } catch (e) {
-        console.warn("Switching to instant backup pipeline...", e);
+        console.warn("Pipeline 1 failed, trying fallback...", e);
       }
 
-      // 2. Direct Instant Pipeline (No Auth Required, 100% Reliable)
+      // Fallback Direct GET Pipeline
       try {
-        const fullPrompt = `${systemText}\n\nUser: ${userMessage}\nJ.A.R.V.I.S:`;
-        const directRes = await fetch("https://text.pollinations.ai/" + encodeURIComponent(fullPrompt));
-        if (directRes.ok) {
-          const out = await directRes.text();
-          if (out && out.trim()) return out.trim();
+        const directUrl = `https://text.pollinations.ai/${encodeURIComponent(userMessage)}?system=${encodeURIComponent(systemText)}&model=openai`;
+        const resGet = await fetch(directUrl);
+        if (resGet.ok) {
+          const textGet = await resGet.text();
+          if (textGet && textGet.trim() && !textGet.startsWith("<!DOCTYPE")) {
+            return textGet.trim();
+          }
         }
       } catch (err) {
-        console.error("Backup fetch error:", err);
+        console.error("Pipeline 2 failed", err);
       }
 
-      return "I'm online and ready. Could you repeat that query?";
+      throw new Error("Network busy. Please tap Send once more.");
     }
 
     form.addEventListener("submit", async (e) => {
@@ -451,7 +449,7 @@
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v37", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v38", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
