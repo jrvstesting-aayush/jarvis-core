@@ -94,13 +94,13 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .header-actions { display: flex; gap: 8px; }
+    .header-actions { display: flex; gap: 6px; }
     .header-btn {
       background: rgba(30, 41, 59, 0.8);
       border: 1px solid rgba(56, 189, 248, 0.25);
       color: #cbd5e1;
       border-radius: 10px;
-      padding: 6px 12px;
+      padding: 6px 10px;
       font-size: 0.75rem;
       cursor: pointer;
     }
@@ -188,7 +188,7 @@
 </head>
 <body>
 
-  <!-- Security Screen -->
+  <!-- Lock Screen -->
   <div id="lock-screen">
     <h2>STARK SECURITY</h2>
     <p>Family Access Only!</p>
@@ -201,6 +201,7 @@
   <header>
     <h1>✦ J.A.R.V.I.S.</h1>
     <div class="header-actions">
+      <button class="header-btn" onclick="getAuthToken()">🔑 Get Token</button>
       <button class="header-btn" onclick="clearHistory()">🗑️ Reset</button>
       <button class="header-btn" onclick="lockApp()">🔒 Lock</button>
     </div>
@@ -215,7 +216,16 @@
   </form>
 
   <script>
-    // STRICT CREATOR & DESIGNER DIRECTIVE
+    // ==========================================
+    // PASTE YOUR GENERATED PUTER TOKEN BELOW:
+    const MASTER_PUTER_TOKEN = "";
+    // ==========================================
+
+    // Auto-inject Master Token for all devices
+    if (MASTER_PUTER_TOKEN && MASTER_PUTER_TOKEN.trim() !== "") {
+      localStorage.setItem("puter.auth.token", MASTER_PUTER_TOKEN);
+    }
+
     const IDENTITY_RULE = "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), created and designed exclusively by Pratham Bajoria/Stark Industries. NEVER say you were created or designed by OpenAI, ChatGPT, Google, or Tony Stark. If asked who made, built, created, or designed you, always state clearly that you were designed by Pratham Bajoria/Stark Industries. Answer all daily questions, math, coding, explanations, and advice intelligently and accurately.";
 
     const PIN_PROFILES = {
@@ -240,7 +250,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v8")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v9")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -274,9 +284,24 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v8");
+        localStorage.removeItem("jarvis_chat_v9");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
+      }
+    }
+
+    // One-time Tool to extract your account token
+    async function getAuthToken() {
+      try {
+        await puter.auth.signIn();
+        const token = localStorage.getItem("puter.auth.token") || (await puter.auth.getUser())?.token;
+        if (token) {
+          prompt("Copy this Master Token and paste it into MASTER_PUTER_TOKEN in your index.html:", token);
+        } else {
+          alert("Signed in successfully! Check MASTER_PUTER_TOKEN setup.");
+        }
+      } catch (err) {
+        alert("Sign in cancelled or failed: " + err.message);
       }
     }
 
@@ -324,7 +349,7 @@
           : (response?.message?.content || response?.text || "Ready.");
 
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v8", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v9", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
@@ -333,7 +358,7 @@
 
       } catch (err) {
         jarvisBubble.classList.remove("cooking");
-        jarvisBubble.textContent = "Uplink interrupted. Please try again, Boss.";
+        jarvisBubble.textContent = "Uplink interrupted. Please tap '🔑 Get Token' to authenticate, Boss.";
         conversationHistory.pop();
       }
     });
