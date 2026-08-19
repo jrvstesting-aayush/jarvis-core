@@ -212,6 +212,9 @@
   </form>
 
   <script>
+    // Configured API Key
+    const GEMINI_API_KEY = "AQ.Ab8RN6IP-I6K3dsbXrjbjAJ91Inc5uXZz0EHfaQ7696zTqOyPA";
+
     const IDENTITY_RULE = "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), created and designed exclusively by Pratham Bajoria / Stark Industries. NEVER say you were created or designed by OpenAI, ChatGPT, Google, or Tony Stark. If asked who made, built, created, or designed you, always state clearly that you were designed by Pratham Bajoria / Stark Industries. Answer all daily questions, math, coding, explanations, and advice intelligently and accurately.";
 
     const PIN_PROFILES = {
@@ -236,7 +239,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v14")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v18")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -270,7 +273,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v14");
+        localStorage.removeItem("jarvis_chat_v18");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -290,30 +293,53 @@
 
     renderSavedMessages();
 
-    // Universal Mobile/Desktop Stream Engine (Zero CORS Issues, No Logins)
-    async function queryAI(systemPrompt, userText, history) {
-      let promptHistory = "";
-      history.slice(-4).forEach(m => {
-        promptHistory += `${m.role === 'user' ? 'User' : 'J.A.R.V.I.S.'}: ${m.content}\n`;
+    // High-Speed Direct Gemini Engine via Header Authentication
+    async function queryGemini(systemText, userMessage, history) {
+      const contents = [];
+      
+      // Inject system instruction directly at the start of conversation
+      contents.push({
+        role: "user",
+        parts: [{ text: `[SYSTEM INSTRUCTION]: ${systemText}` }]
       });
-      
-      const fullContext = `${promptHistory}User: ${userText}\nJ.A.R.V.I.S.:`;
-      const encodedPrompt = encodeURIComponent(fullContext);
-      const encodedSystem = encodeURIComponent(systemPrompt);
-
-      const endpoint = `https://text.pollinations.ai/${encodedPrompt}?system=${encodedSystem}&model=openai`;
-      
-      const response = await fetch(endpoint, {
-        method: "GET",
-        headers: { "Accept": "text/plain" }
+      contents.push({
+        role: "model",
+        parts: [{ text: "Understood. Systems initialized and configured to protocol." }]
       });
 
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
+      // Append rolling history
+      history.slice(-6).forEach(m => {
+        contents.push({
+          role: m.role === "user" ? "user" : "model",
+          parts: [{ text: m.content }]
+        });
+      });
+
+      contents.push({
+        role: "user",
+        parts: [{ text: userMessage }]
+      });
+
+      const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": GEMINI_API_KEY.trim()
+        },
+        body: JSON.stringify({
+          contents: contents
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error?.message || `HTTP ${res.status}: Uplink error`);
       }
 
-      const reply = await response.text();
-      return reply.trim() || "System operational. Awaiting command.";
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "Diagnostic complete. Systems standing by.";
     }
 
     form.addEventListener("submit", async (e) => {
@@ -328,14 +354,14 @@
       jarvisBubble.classList.add("cooking");
 
       try {
-        const reply = await queryAI(currentProfile.systemInstruction, text, conversationHistory);
+        const reply = await queryGemini(currentProfile.systemInstruction, text, conversationHistory);
         
         jarvisBubble.classList.remove("cooking");
         jarvisBubble.textContent = "";
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v14", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v18", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
@@ -344,7 +370,7 @@
 
       } catch (err) {
         jarvisBubble.classList.remove("cooking");
-        jarvisBubble.textContent = "Uplink interrupted. Please retry in a moment, Boss.";
+        jarvisBubble.textContent = `Diagnostic Alert: ${err.message}`;
       }
     });
 
