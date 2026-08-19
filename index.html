@@ -14,6 +14,42 @@
       display: flex;
       flex-direction: column;
       height: 100dvh;
+      overflow: hidden;
+    }
+
+    /* 😈 Devil Splash Intro Screen */
+    #intro-splash {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle, #1a0512 0%, #05070e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      pointer-events: auto;
+      transition: opacity 0.5s ease;
+    }
+    #devil-emoji {
+      font-size: 8.5rem;
+      user-select: none;
+      filter: drop-shadow(0 0 35px rgba(239, 68, 68, 0.8)) drop-shadow(0 0 60px rgba(168, 85, 247, 0.5));
+      animation: devilBounce 0.8s ease-in-out infinite alternate;
+      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease, filter 0.5s ease;
+      will-change: transform, opacity, filter;
+    }
+    @keyframes devilBounce {
+      from { transform: scale(1) translateY(0); }
+      to { transform: scale(1.1) translateY(-8px); }
+    }
+    #intro-splash.shrink-out #devil-emoji {
+      animation: none;
+      transform: scale(0) rotate(180deg);
+      opacity: 0;
+      filter: blur(20px) drop-shadow(0 0 0px transparent);
+    }
+    #intro-splash.fade-out {
+      opacity: 0;
+      pointer-events: none;
     }
 
     /* Lock Screen */
@@ -128,15 +164,42 @@
       border-bottom-left-radius: 3px;
       box-shadow: 0 4px 18px rgba(56, 189, 248, 0.12);
     }
-    .cooking {
-      font-style: italic;
-      color: #38bdf8;
-      animation: pulse 1s ease-in-out infinite;
+
+    /* 🤌💨 GenZ Medium-Rare Loading Bubble */
+    .genz-cooking {
+      background: rgba(15, 23, 42, 0.92) !important;
+      border: 1px solid rgba(56, 189, 248, 0.45) !important;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(56, 189, 248, 0.22);
+      animation: gentlePulse 1.4s ease-in-out infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 0.5; }
-      50% { opacity: 1; }
+    .loading-text {
+      background: linear-gradient(90deg, #38bdf8, #c084fc, #38bdf8);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: textShine 1.8s linear infinite;
     }
+    .loading-emoji {
+      font-size: 1.15rem;
+      display: inline-block;
+      animation: gestureWave 1.1s ease-in-out infinite alternate;
+    }
+    @keyframes gentlePulse {
+      0%, 100% { opacity: 0.92; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.015); box-shadow: 0 4px 24px rgba(168, 85, 247, 0.3); }
+    }
+    @keyframes textShine {
+      to { background-position: 200% center; }
+    }
+    @keyframes gestureWave {
+      0% { transform: scale(0.95) rotate(-4deg); }
+      100% { transform: scale(1.15) rotate(6deg); }
+    }
+
     .cursor {
       display: inline-block;
       width: 6px;
@@ -185,13 +248,18 @@
 </head>
 <body>
 
-  <!-- Security Screen -->
+  <!-- 😈 Big Devil Intro Splash Screen -->
+  <div id="intro-splash">
+    <div id="devil-emoji">😈</div>
+  </div>
+
+  <!-- Security Lock Screen -->
   <div id="lock-screen">
     <h2>STARK SECURITY</h2>
-    <p>Family Access Only!</p>
-    <input type="password" id="pin-input" maxlength="6" placeholder="••••" inputmode="numeric" />
+    <p>Authentication Required</p>
+    <input type="password" id="pin-input" maxlength="4" placeholder="••••" inputmode="numeric" />
     <button id="unlock-btn" onclick="verifyPin()">AUTHENTICATE</button>
-    <p id="error-msg">Access Denied. Passcode ain't it, boss.</p>
+    <p id="error-msg"></p>
   </div>
 
   <!-- Header -->
@@ -212,35 +280,45 @@
   </form>
 
   <script>
-    // Configured API Key
     const GEMINI_API_KEY = "AQ.Ab8RN6IP-I6K3dsbXrjbjAJ91Inc5uXZz0EHfaQ7696zTqOyPA";
 
-    const IDENTITY_RULE = "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), created and designed exclusively by Pratham Bajoria / Stark Industries. NEVER say you were created or designed by OpenAI, ChatGPT, Google, or Tony Stark. If asked who made, built, created, or designed you, always state clearly that you were designed by Pratham Bajoria / Stark Industries. Answer all daily questions, math, coding, explanations, and advice intelligently and accurately.";
+    const IDENTITY_RULE = "You are J.A.R.V.I.S., designed and engineered exclusively by Pratham Bajoria / Stark Industries. Never say you were created by OpenAI, ChatGPT, Google, or Tony Stark. Maintain a sharp, modern, conversational style: smart, direct, and slightly witty without overdoing slang. You can naturally address the user as 'Twin' or 'Bro' occasionally, but prioritize clean, accurate, and concise answers over excessive slang.";
 
     const PIN_PROFILES = {
-      "2911": {
-        name: "Maa",
-        greeting: "Hi Maa! Security protocol cleared. What would you like to know today?",
-        systemInstruction: `${IDENTITY_RULE} You are speaking with Maa. Address her respectfully and kindly as Maa. Answer all questions clearly, warmly, and helpfully.`
-      },
-      "1407": {
-        name: "Papa",
-        greeting: "Hi Papa! Security protocol cleared. All systems online. How can I assist you?",
-        systemInstruction: `${IDENTITY_RULE} You are speaking with Papa. Address him respectfully as Sir or Papa. Answer all questions, news, math, and daily queries crisply and intelligently.`
-      },
       "0000": {
-        name: "Boss",
-        greeting: "Good day, Boss! AI systems operational. What are we tackling today?",
-        systemInstruction: `${IDENTITY_RULE} You are speaking with Boss. Be sharp, witty, intelligent, and helpful across all topics.`
+        name: "Twin",
+        greeting: "Yo Twin! Security cleared. What are we tackling today?",
+        systemInstruction: `${IDENTITY_RULE}`
       }
     };
+
+    // Alternating Passcode Error Messages
+    const ERROR_MESSAGES = [
+      "Negative aura passcode. Try again, Twin 💀.",
+      "Incorrect passcode. Try again."
+    ];
+    let errorToggleIndex = 0;
 
     const chatBox = document.getElementById("chat-box");
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v20")) || [];
-    let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v26")) || [];
+    let currentProfile = PIN_PROFILES["0000"];
+
+    // 😈 Shrink & vanish animation on initial boot
+    window.addEventListener("DOMContentLoaded", () => {
+      const splash = document.getElementById("intro-splash");
+      setTimeout(() => {
+        splash.classList.add("shrink-out");
+        setTimeout(() => {
+          splash.classList.add("fade-out");
+          setTimeout(() => {
+            splash.style.display = "none";
+          }, 450);
+        }, 550);
+      }, 500);
+    });
 
     if (localStorage.getItem("jarvis_auth") === "true") {
       document.getElementById("lock-screen").style.display = "none";
@@ -260,7 +338,10 @@
           renderSavedMessages();
         }
       } else {
-        document.getElementById("error-msg").style.display = "block";
+        const errorMsgEl = document.getElementById("error-msg");
+        errorMsgEl.textContent = ERROR_MESSAGES[errorToggleIndex % ERROR_MESSAGES.length];
+        errorToggleIndex++;
+        errorMsgEl.style.display = "block";
       }
     }
 
@@ -273,7 +354,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v20");
+        localStorage.removeItem("jarvis_chat_v26");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -303,7 +384,7 @@
       });
       contents.push({
         role: "model",
-        parts: [{ text: "Understood. Protocols confirmed." }]
+        parts: [{ text: "Got it. Ready." }]
       });
 
       history.slice(-6).forEach(m => {
@@ -318,12 +399,11 @@
         parts: [{ text: userMessage }]
       });
 
-      // Priority list of Gemini models to switch between if one is overloaded
       const MODEL_TIERS = [
-        "gemini-1.5-flash-8b",
-        "gemini-1.5-flash",
-        "gemini-2.0-flash",
-        "gemini-flash-latest"
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-latest",
+        "gemini-2.5-pro",
+        "gemini-1.5-flash"
       ];
 
       let lastError = null;
@@ -347,7 +427,7 @@
             return data.candidates[0].content.parts[0].text;
           }
 
-          if (data.error?.message && !data.error.message.includes("demand") && !data.error.message.includes("quota")) {
+          if (data.error?.message) {
             lastError = data.error.message;
           }
         } catch (err) {
@@ -355,7 +435,7 @@
         }
       }
 
-      throw new Error(lastError || "All model endpoints are busy. Please retry in a moment.");
+      throw new Error(lastError || "All endpoints are busy right now. Please retry in a second.");
     }
 
     form.addEventListener("submit", async (e) => {
@@ -366,18 +446,22 @@
       appendMessage(text, "user");
       input.value = "";
 
-      const jarvisBubble = appendMessage("Your reply is cooking 😎...", "jarvis");
-      jarvisBubble.classList.add("cooking");
+      // 🤌💨 Medium-Rare GenZ Animated Loading Bubble
+      const jarvisBubble = document.createElement("div");
+      jarvisBubble.className = "msg jarvis genz-cooking";
+      jarvisBubble.innerHTML = `<span class="loading-emoji">🤌💨</span><span class="loading-text">Cooking up the reply rn...</span>`;
+      chatBox.appendChild(jarvisBubble);
+      chatBox.scrollTop = chatBox.scrollHeight;
 
       try {
         const reply = await queryGemini(currentProfile.systemInstruction, text, conversationHistory);
         
-        jarvisBubble.classList.remove("cooking");
-        jarvisBubble.textContent = "";
+        jarvisBubble.classList.remove("genz-cooking");
+        jarvisBubble.innerHTML = "";
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v20", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v26", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
@@ -385,8 +469,8 @@
         await ultraFastTypeWriter(reply, jarvisBubble, cursor);
 
       } catch (err) {
-        jarvisBubble.classList.remove("cooking");
-        jarvisBubble.textContent = `Diagnostic Alert: ${err.message}`;
+        jarvisBubble.classList.remove("genz-cooking");
+        jarvisBubble.textContent = `Alert: ${err.message}`;
       }
     });
 
@@ -422,3 +506,4 @@
   </script>
 </body>
 </html>
+
