@@ -94,13 +94,13 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .header-actions { display: flex; gap: 6px; }
+    .header-actions { display: flex; gap: 8px; }
     .header-btn {
       background: rgba(30, 41, 59, 0.8);
       border: 1px solid rgba(56, 189, 248, 0.25);
       color: #cbd5e1;
       border-radius: 10px;
-      padding: 6px 10px;
+      padding: 6px 12px;
       font-size: 0.75rem;
       cursor: pointer;
     }
@@ -188,7 +188,7 @@
 </head>
 <body>
 
-  <!-- Lock Screen -->
+  <!-- Security Screen -->
   <div id="lock-screen">
     <h2>STARK SECURITY</h2>
     <p>Family Access Only!</p>
@@ -201,7 +201,6 @@
   <header>
     <h1>✦ J.A.R.V.I.S.</h1>
     <div class="header-actions">
-      <button class="header-btn" onclick="getAuthToken()">🔑 Get Token</button>
       <button class="header-btn" onclick="clearHistory()">🗑️ Reset</button>
       <button class="header-btn" onclick="lockApp()">🔒 Lock</button>
     </div>
@@ -216,18 +215,20 @@
   </form>
 
   <script>
-    // ========================================================
-    // PASTE YOUR EXTRACTED MASTER TOKEN BELOW (BETWEEN QUOTES)
-    const MASTER_PUTER_TOKEN = "";
-    // ========================================================
+    // Embedded Master Account Token
+    const MASTER_PUTER_TOKEN = "App-30c6b951-9599-596f-ac6f-62223a1371a7";
 
-    // Auto-inject Master Token if present
-    if (MASTER_PUTER_TOKEN && MASTER_PUTER_TOKEN.trim().length > 10) {
-      localStorage.setItem("puter.auth.token", MASTER_PUTER_TOKEN.trim());
-      localStorage.setItem("puter_token", MASTER_PUTER_TOKEN.trim());
+    // Auto-inject Token across all browser instances
+    if (MASTER_PUTER_TOKEN) {
+      localStorage.setItem("puter.auth.token", MASTER_PUTER_TOKEN);
+      localStorage.setItem("puter_token", MASTER_PUTER_TOKEN);
+      localStorage.setItem("puter_auth_token", MASTER_PUTER_TOKEN);
+      if (window.puter) {
+        window.puter.authToken = MASTER_PUTER_TOKEN;
+      }
     }
 
-    const IDENTITY_RULE = "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), created and designed exclusively by Pratham Bajoria/Stark Industries. NEVER say you were created or designed by OpenAI, ChatGPT, Google, or Tony Stark. If asked who made, built, created, or designed you, always state clearly that you were designed by Pratham Bajoria/Stark Industries. Answer all daily questions, math, coding, explanations, and advice intelligently and accurately.";
+    const IDENTITY_RULE = "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), created and designed exclusively by Pratham Bajoria / Stark Industries. NEVER say you were created or designed by OpenAI, ChatGPT, Google, or Tony Stark. If asked who made, built, created, or designed you, always state clearly that you were designed by Pratham Bajoria / Stark Industries. Answer all daily questions, math, coding, explanations, and advice intelligently and accurately.";
 
     const PIN_PROFILES = {
       "2911": {
@@ -251,7 +252,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v11")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v12")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -285,37 +286,9 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v11");
+        localStorage.removeItem("jarvis_chat_v12");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
-      }
-    }
-
-    // Auto-Scanner to extract token directly from memory
-    async function getAuthToken() {
-      try {
-        await puter.auth.signIn();
-        
-        let token = localStorage.getItem("puter.auth.token") || localStorage.getItem("puter_token");
-        
-        if (!token) {
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            const val = localStorage.getItem(key);
-            if (val && val.length > 25 && (key.includes("token") || key.includes("auth") || key.includes("puter"))) {
-              token = val;
-              break;
-            }
-          }
-        }
-
-        if (token) {
-          prompt("Copy this Master Token and paste into MASTER_PUTER_TOKEN in index.html:", token);
-        } else {
-          alert("Signed in successfully! If token is not visible, check browser settings.");
-        }
-      } catch (err) {
-        alert("Authentication Error: " + err.message);
       }
     }
 
@@ -360,10 +333,10 @@
 
         const reply = typeof response === "string" 
           ? response 
-          : (response?.message?.content || response?.text || "System online.");
+          : (response?.message?.content || response?.text || "System operational.");
 
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v11", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v12", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
@@ -372,7 +345,7 @@
 
       } catch (err) {
         jarvisBubble.classList.remove("cooking");
-        jarvisBubble.textContent = "Uplink interrupted. Please try again or tap '🔑 Get Token', Boss.";
+        jarvisBubble.textContent = "Uplink interrupted. Please verify connection and retry, Boss.";
         conversationHistory.pop();
       }
     });
