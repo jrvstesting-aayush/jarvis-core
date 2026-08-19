@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>J.A.R.V.I.S.</title>
   
-  <!-- Puter.js AI Core -->
+  <!-- Puter.js AI Core Engine -->
   <script src="https://js.puter.com/v2/"></script>
 
   <style>
@@ -188,7 +188,7 @@
 </head>
 <body>
 
-  <!-- Lock Screen -->
+  <!-- Security Screen -->
   <div id="lock-screen">
     <h2>STARK SECURITY</h2>
     <p>Family Access Only!</p>
@@ -215,21 +215,24 @@
   </form>
 
   <script>
+    // STRICT CREATOR & DESIGNER DIRECTIVE
+    const IDENTITY_RULE = "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), created and designed exclusively by Pratham Bajoria/Stark Industries. NEVER say you were created or designed by OpenAI, ChatGPT, Google, or Tony Stark. If asked who made, built, created, or designed you, always state clearly that you were designed by Pratham Bajoria/Stark Industries. Answer all daily questions, math, coding, explanations, and advice intelligently and accurately.";
+
     const PIN_PROFILES = {
       "2911": {
         name: "Maa",
         greeting: "Hi Maa! Security protocol cleared. What would you like to know today?",
-        systemInstruction: "You are an intelligent, daily AI assistant named J.A.R.V.I.S. You are speaking with Maa. Address her respectfully and kindly as Maa. Answer any question, calculate math, give advice, or chat warmly and clearly."
+        systemInstruction: `${IDENTITY_RULE} You are speaking with Maa. Address her respectfully and kindly as Maa. Answer all questions clearly, warmly, and helpfully.`
       },
       "1407": {
         name: "Papa",
         greeting: "Hi Papa! Security protocol cleared. All systems online. How can I assist you?",
-        systemInstruction: "You are an intelligent, daily AI assistant named J.A.R.V.I.S. You are speaking with Papa. Address him respectfully as Sir or Papa. Answer all questions, news, math, and daily queries crisply and intelligently."
+        systemInstruction: `${IDENTITY_RULE} You are speaking with Papa. Address him respectfully as Sir or Papa. Answer all questions, news, math, and daily queries crisply and intelligently.`
       },
       "0000": {
         name: "Boss",
         greeting: "Good day, Boss! AI systems operational. What are we tackling today?",
-        systemInstruction: "You are J.A.R.V.I.S., a world-class AI assistant with the versatile intelligence of ChatGPT and Gemini. Solve math, answer general queries, write text, code, and chat naturally. Be smart, sharp, and helpful."
+        systemInstruction: `${IDENTITY_RULE} You are speaking with Boss. Be sharp, witty, intelligent, and helpful across all topics.`
       }
     };
 
@@ -237,7 +240,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v5")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v8")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -271,7 +274,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v5");
+        localStorage.removeItem("jarvis_chat_v8");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -307,9 +310,9 @@
       try {
         let fullPrompt = `System: ${currentProfile.systemInstruction}\n\n`;
         conversationHistory.slice(-6).forEach(m => {
-          fullPrompt += `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}\n`;
+          fullPrompt += `${m.role === 'user' ? 'User' : 'J.A.R.V.I.S.'}: ${m.content}\n`;
         });
-        fullPrompt += `Assistant:`;
+        fullPrompt += `J.A.R.V.I.S.:`;
 
         const response = await puter.ai.chat(fullPrompt);
         
@@ -321,7 +324,7 @@
           : (response?.message?.content || response?.text || "Ready.");
 
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v5", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v8", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
