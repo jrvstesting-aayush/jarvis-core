@@ -280,9 +280,10 @@
   </form>
 
   <script>
-    const GEMINI_API_KEY = "AQ.Ab8RN6IP-I6K3dsbXrjbjAJ91Inc5uXZz0EHfaQ7696zTqOyPA";
+    // Groq High-Speed Cloud Engine Key
+    const GROQ_API_KEY = "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";
 
-    const IDENTITY_RULE = "You are J.A.R.V.I.S., designed and engineered exclusively by Pratham Bajoria / Stark Industries. Never say you were created by OpenAI, ChatGPT, Google, or Tony Stark. Maintain a sharp, modern, conversational style: smart, direct, and slightly witty without overdoing slang. You can naturally address the user as 'Twin' or 'Bro' occasionally, but prioritize clean, accurate, and concise answers over excessive slang.";
+    const IDENTITY_RULE = "You are J.A.R.V.I.S., designed and engineered exclusively by Pratham Bajoria / Stark Industries. Never say you were created by OpenAI, ChatGPT, Google, Meta, Groq, or Tony Stark. Maintain a sharp, modern, conversational style: smart, direct, and slightly witty with a touch of GenZ energy. Address the user naturally as 'Twin' or 'Bro' occasionally, but prioritize clean, accurate, and concise answers without overdoing slang.";
 
     const PIN_PROFILES = {
       "0000": {
@@ -303,7 +304,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v26")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v27")) || [];
     let currentProfile = PIN_PROFILES["0000"];
 
     // 😈 Shrink & vanish animation on initial boot
@@ -354,7 +355,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v26");
+        localStorage.removeItem("jarvis_chat_v27");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -374,57 +375,48 @@
 
     renderSavedMessages();
 
-    // High-Resilience Model Cascade
-    async function queryGemini(systemText, userMessage, history) {
-      const contents = [];
-      
-      contents.push({
-        role: "user",
-        parts: [{ text: `[SYSTEM INSTRUCTION]: ${systemText}` }]
-      });
-      contents.push({
-        role: "model",
-        parts: [{ text: "Got it. Ready." }]
-      });
+    // Groq Cloud AI Engine with Multi-Model Fallback
+    async function queryGroq(systemText, userMessage, history) {
+      const messages = [];
+      messages.push({ role: "system", content: systemText });
 
-      history.slice(-6).forEach(m => {
-        contents.push({
-          role: m.role === "user" ? "user" : "model",
-          parts: [{ text: m.content }]
+      history.slice(-8).forEach(m => {
+        messages.push({
+          role: m.role === "user" ? "user" : "assistant",
+          content: m.content
         });
       });
 
-      contents.push({
-        role: "user",
-        parts: [{ text: userMessage }]
-      });
+      messages.push({ role: "user", content: userMessage });
 
-      const MODEL_TIERS = [
-        "gemini-2.5-flash",
-        "gemini-2.5-flash-latest",
-        "gemini-2.5-pro",
-        "gemini-1.5-flash"
+      const GROQ_MODELS = [
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+        "mixtral-8x7b-32768"
       ];
 
       let lastError = null;
 
-      for (const model of MODEL_TIERS) {
+      for (const model of GROQ_MODELS) {
         try {
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
-
-          const res = await fetch(endpoint, {
+          const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-goog-api-key": GEMINI_API_KEY.trim()
+              "Authorization": `Bearer ${GROQ_API_KEY.trim()}`
             },
-            body: JSON.stringify({ contents: contents })
+            body: JSON.stringify({
+              model: model,
+              messages: messages,
+              temperature: 0.7,
+              max_tokens: 1024
+            })
           });
 
           const data = await res.json();
 
-          if (res.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
-            return data.candidates[0].content.parts[0].text;
+          if (res.ok && data.choices?.[0]?.message?.content) {
+            return data.choices[0].message.content;
           }
 
           if (data.error?.message) {
@@ -435,7 +427,7 @@
         }
       }
 
-      throw new Error(lastError || "All endpoints are busy right now. Please retry in a second.");
+      throw new Error(lastError || "All Groq endpoints busy. Please retry in a second.");
     }
 
     form.addEventListener("submit", async (e) => {
@@ -454,14 +446,14 @@
       chatBox.scrollTop = chatBox.scrollHeight;
 
       try {
-        const reply = await queryGemini(currentProfile.systemInstruction, text, conversationHistory);
+        const reply = await queryGroq(currentProfile.systemInstruction, text, conversationHistory);
         
         jarvisBubble.classList.remove("genz-cooking");
         jarvisBubble.innerHTML = "";
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v26", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v27", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
@@ -506,4 +498,3 @@
   </script>
 </body>
 </html>
-
