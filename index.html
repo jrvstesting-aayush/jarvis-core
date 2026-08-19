@@ -236,7 +236,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v13")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v14")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -270,7 +270,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v13");
+        localStorage.removeItem("jarvis_chat_v14");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -290,26 +290,30 @@
 
     renderSavedMessages();
 
-    // Universal background API handler (no tokens, no logins, no redirects)
-    async function queryAI(messagesPayload) {
-      const response = await fetch("https://text.pollinations.ai/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          messages: messagesPayload,
-          model: "openai",
-          seed: 42
-        })
+    // Universal Mobile/Desktop Stream Engine (Zero CORS Issues, No Logins)
+    async function queryAI(systemPrompt, userText, history) {
+      let promptHistory = "";
+      history.slice(-4).forEach(m => {
+        promptHistory += `${m.role === 'user' ? 'User' : 'J.A.R.V.I.S.'}: ${m.content}\n`;
+      });
+      
+      const fullContext = `${promptHistory}User: ${userText}\nJ.A.R.V.I.S.:`;
+      const encodedPrompt = encodeURIComponent(fullContext);
+      const encodedSystem = encodeURIComponent(systemPrompt);
+
+      const endpoint = `https://text.pollinations.ai/${encodedPrompt}?system=${encodedSystem}&model=openai`;
+      
+      const response = await fetch(endpoint, {
+        method: "GET",
+        headers: { "Accept": "text/plain" }
       });
 
       if (!response.ok) {
-        throw new Error(`Server status: ${response.status}`);
+        throw new Error(`Server returned ${response.status}`);
       }
 
-      const text = await response.text();
-      return text.trim();
+      const reply = await response.text();
+      return reply.trim() || "System operational. Awaiting command.";
     }
 
     form.addEventListener("submit", async (e) => {
@@ -320,24 +324,18 @@
       appendMessage(text, "user");
       input.value = "";
 
-      conversationHistory.push({ role: "user", content: text });
-
       const jarvisBubble = appendMessage("Your reply is cooking 😎...", "jarvis");
       jarvisBubble.classList.add("cooking");
 
       try {
-        const payload = [
-          { role: "system", content: currentProfile.systemInstruction },
-          ...conversationHistory.slice(-8)
-        ];
-
-        const reply = await queryAI(payload);
+        const reply = await queryAI(currentProfile.systemInstruction, text, conversationHistory);
         
         jarvisBubble.classList.remove("cooking");
         jarvisBubble.textContent = "";
 
+        conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v13", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v14", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
@@ -346,8 +344,7 @@
 
       } catch (err) {
         jarvisBubble.classList.remove("cooking");
-        jarvisBubble.textContent = "Uplink interrupted. Please verify connection and retry, Boss.";
-        conversationHistory.pop();
+        jarvisBubble.textContent = "Uplink interrupted. Please retry in a moment, Boss.";
       }
     });
 
