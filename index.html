@@ -239,7 +239,8 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v18")) || [];
+    // Bumped version to v19 to strictly overwrite old caches on all devices
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v19")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -273,7 +274,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v18");
+        localStorage.removeItem("jarvis_chat_v19");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -361,7 +362,7 @@
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v18", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v19", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
