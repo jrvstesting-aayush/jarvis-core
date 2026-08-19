@@ -239,8 +239,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    // Bumped version to v19 to strictly overwrite old caches on all devices
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v19")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v20")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -274,7 +273,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v19");
+        localStorage.removeItem("jarvis_chat_v20");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -294,21 +293,19 @@
 
     renderSavedMessages();
 
-    // High-Speed Direct Gemini Engine via Header Authentication
+    // High-Resilience Model Cascade
     async function queryGemini(systemText, userMessage, history) {
       const contents = [];
       
-      // Inject system instruction directly at the start of conversation
       contents.push({
         role: "user",
         parts: [{ text: `[SYSTEM INSTRUCTION]: ${systemText}` }]
       });
       contents.push({
         role: "model",
-        parts: [{ text: "Understood. Systems initialized and configured to protocol." }]
+        parts: [{ text: "Understood. Protocols confirmed." }]
       });
 
-      // Append rolling history
       history.slice(-6).forEach(m => {
         contents.push({
           role: m.role === "user" ? "user" : "model",
@@ -321,26 +318,44 @@
         parts: [{ text: userMessage }]
       });
 
-      const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+      // Priority list of Gemini models to switch between if one is overloaded
+      const MODEL_TIERS = [
+        "gemini-1.5-flash-8b",
+        "gemini-1.5-flash",
+        "gemini-2.0-flash",
+        "gemini-flash-latest"
+      ];
 
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": GEMINI_API_KEY.trim()
-        },
-        body: JSON.stringify({
-          contents: contents
-        })
-      });
+      let lastError = null;
 
-      const data = await res.json();
+      for (const model of MODEL_TIERS) {
+        try {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
-      if (!res.ok) {
-        throw new Error(data.error?.message || `HTTP ${res.status}: Uplink error`);
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": GEMINI_API_KEY.trim()
+            },
+            body: JSON.stringify({ contents: contents })
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+            return data.candidates[0].content.parts[0].text;
+          }
+
+          if (data.error?.message && !data.error.message.includes("demand") && !data.error.message.includes("quota")) {
+            lastError = data.error.message;
+          }
+        } catch (err) {
+          lastError = err.message;
+        }
       }
 
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || "Diagnostic complete. Systems standing by.";
+      throw new Error(lastError || "All model endpoints are busy. Please retry in a moment.");
     }
 
     form.addEventListener("submit", async (e) => {
@@ -362,7 +377,7 @@
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v19", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v20", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
