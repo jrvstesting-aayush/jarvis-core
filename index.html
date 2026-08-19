@@ -280,7 +280,7 @@
   </form>
 
   <script>
-    // Groq API Key
+    // Groq High-Speed API Key
     const GROQ_API_KEY = "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";
 
     const IDENTITY_RULE = "You are J.A.R.V.I.S., designed and engineered exclusively by Pratham Bajoria / Stark Industries. Never say you were created by OpenAI, ChatGPT, Google, Meta, Groq, or Tony Stark. Maintain a sharp, modern, conversational style: smart, direct, and slightly witty with a touch of GenZ energy. Address the user naturally as 'Twin' or 'Bro' occasionally, but prioritize clean, accurate, and concise answers without overdoing slang.";
@@ -304,7 +304,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v31")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v33")) || [];
     let currentProfile = PIN_PROFILES["0000"];
 
     // 😈 Shrink & vanish animation on initial boot
@@ -355,7 +355,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v31");
+        localStorage.removeItem("jarvis_chat_v33");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -375,7 +375,7 @@
 
     renderSavedMessages();
 
-    // Groq Permanent Production Models
+    // Groq AI Request Engine - Active Models Only
     async function queryGroq(systemText, userMessage, history) {
       const messages = [];
       messages.push({ role: "system", content: systemText });
@@ -389,11 +389,10 @@
 
       messages.push({ role: "user", content: userMessage });
 
-      // Core production models on Groq
+      // Only live, active production models
       const GROQ_MODELS = [
         "llama-3.3-70b-versatile",
-        "llama3-70b-8192",
-        "llama3-8b-8192"
+        "deepseek-r1-distill-llama-70b"
       ];
 
       let lastError = null;
@@ -417,7 +416,10 @@
           const data = await res.json();
 
           if (res.ok && data.choices?.[0]?.message?.content) {
-            return data.choices[0].message.content;
+            let textOutput = data.choices[0].message.content;
+            // Clean reasoning tokens if deepseek answers
+            textOutput = textOutput.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+            return textOutput;
           }
 
           if (data.error?.message) {
@@ -454,7 +456,7 @@
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v31", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v33", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
@@ -498,5 +500,4 @@
     }
   </script>
 </body>
-  </html>
-  
+</html>
