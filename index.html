@@ -4,9 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>J.A.R.V.I.S.</title>
-  
-  <!-- Puter.js AI Core Engine -->
-  <script src="https://js.puter.com/v2/"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -215,19 +212,6 @@
   </form>
 
   <script>
-    // Embedded Master Account Token
-    const MASTER_PUTER_TOKEN = "App-30c6b951-9599-596f-ac6f-62223a1371a7";
-
-    // Auto-inject Token across all browser instances
-    if (MASTER_PUTER_TOKEN) {
-      localStorage.setItem("puter.auth.token", MASTER_PUTER_TOKEN);
-      localStorage.setItem("puter_token", MASTER_PUTER_TOKEN);
-      localStorage.setItem("puter_auth_token", MASTER_PUTER_TOKEN);
-      if (window.puter) {
-        window.puter.authToken = MASTER_PUTER_TOKEN;
-      }
-    }
-
     const IDENTITY_RULE = "You are J.A.R.V.I.S. (Just A Rather Very Intelligent System), created and designed exclusively by Pratham Bajoria / Stark Industries. NEVER say you were created or designed by OpenAI, ChatGPT, Google, or Tony Stark. If asked who made, built, created, or designed you, always state clearly that you were designed by Pratham Bajoria / Stark Industries. Answer all daily questions, math, coding, explanations, and advice intelligently and accurately.";
 
     const PIN_PROFILES = {
@@ -252,7 +236,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v12")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v13")) || [];
     let currentProfile = JSON.parse(localStorage.getItem("jarvis_profile")) || PIN_PROFILES["0000"];
 
     if (localStorage.getItem("jarvis_auth") === "true") {
@@ -286,7 +270,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v12");
+        localStorage.removeItem("jarvis_chat_v13");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -306,6 +290,28 @@
 
     renderSavedMessages();
 
+    // Universal background API handler (no tokens, no logins, no redirects)
+    async function queryAI(messagesPayload) {
+      const response = await fetch("https://text.pollinations.ai/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          messages: messagesPayload,
+          model: "openai",
+          seed: 42
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server status: ${response.status}`);
+      }
+
+      const text = await response.text();
+      return text.trim();
+    }
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const text = input.value.trim();
@@ -320,23 +326,18 @@
       jarvisBubble.classList.add("cooking");
 
       try {
-        let fullPrompt = `System: ${currentProfile.systemInstruction}\n\n`;
-        conversationHistory.slice(-6).forEach(m => {
-          fullPrompt += `${m.role === 'user' ? 'User' : 'J.A.R.V.I.S.'}: ${m.content}\n`;
-        });
-        fullPrompt += `J.A.R.V.I.S.:`;
+        const payload = [
+          { role: "system", content: currentProfile.systemInstruction },
+          ...conversationHistory.slice(-8)
+        ];
 
-        const response = await puter.ai.chat(fullPrompt);
+        const reply = await queryAI(payload);
         
         jarvisBubble.classList.remove("cooking");
         jarvisBubble.textContent = "";
 
-        const reply = typeof response === "string" 
-          ? response 
-          : (response?.message?.content || response?.text || "System operational.");
-
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v12", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v13", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
