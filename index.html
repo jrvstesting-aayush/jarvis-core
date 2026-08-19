@@ -165,7 +165,7 @@
       box-shadow: 0 4px 18px rgba(56, 189, 248, 0.12);
     }
 
-    /* 🤌💨 GenZ Medium-Rare Loading Bubble */
+    /* 🤌💨 Medium-Rare GenZ Animated Loading Bubble */
     .genz-cooking {
       background: rgba(15, 23, 42, 0.92) !important;
       border: 1px solid rgba(56, 189, 248, 0.45) !important;
@@ -304,7 +304,7 @@
     const form = document.getElementById("input-form");
     const input = document.getElementById("user-input");
 
-    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v27")) || [];
+    let conversationHistory = JSON.parse(localStorage.getItem("jarvis_chat_v28")) || [];
     let currentProfile = PIN_PROFILES["0000"];
 
     // 😈 Shrink & vanish animation on initial boot
@@ -355,7 +355,7 @@
     function clearHistory() {
       if (confirm("Clear memory logs and start fresh?")) {
         conversationHistory = [];
-        localStorage.removeItem("jarvis_chat_v27");
+        localStorage.removeItem("jarvis_chat_v28");
         chatBox.innerHTML = "";
         appendMessage(currentProfile.greeting, "jarvis");
       }
@@ -375,7 +375,7 @@
 
     renderSavedMessages();
 
-    // Groq Cloud AI Engine with Multi-Model Fallback
+    // Active Production Groq Models
     async function queryGroq(systemText, userMessage, history) {
       const messages = [];
       messages.push({ role: "system", content: systemText });
@@ -392,7 +392,7 @@
       const GROQ_MODELS = [
         "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "mixtral-8x7b-32768"
+        "gemma2-9b-it"
       ];
 
       let lastError = null;
@@ -453,7 +453,7 @@
 
         conversationHistory.push({ role: "user", content: text });
         conversationHistory.push({ role: "assistant", content: reply });
-        localStorage.setItem("jarvis_chat_v27", JSON.stringify(conversationHistory.slice(-10)));
+        localStorage.setItem("jarvis_chat_v28", JSON.stringify(conversationHistory.slice(-10)));
 
         const cursor = document.createElement("span");
         cursor.className = "cursor";
